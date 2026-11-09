@@ -1,0 +1,1086 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Local LauxeN</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,500;6..96,600&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: plano de taller de sastrería — visor 3D grande con leyenda de zonas al lado, debajo comparativa, burros y lista de visita */
+:root{
+  --bg:#F1F2EC; --surface:#FAFAF6; --fg:#1B2420; --muted:#5A645D; --line:#D5D8CD;
+  --accent:#24473A; --accent-fg:#F3F0E4; --brass:#94733A; --stage:#E4E6DE; --ground:#D9DBD2;
+  --f-display:"Bodoni Moda", "Didot", "Bodoni 72", Georgia, serif;
+  --f-body:"Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#101412; --surface:#171C19; --fg:#E5E8E1; --muted:#9AA39B; --line:#2B332E;
+  --accent:#86B9A1; --accent-fg:#0E1411; --brass:#CDA963; --stage:#19201C; --ground:#222925; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#101412; --surface:#171C19; --fg:#E5E8E1; --muted:#9AA39B; --line:#2B332E;
+  --accent:#86B9A1; --accent-fg:#0E1411; --brass:#CDA963; --stage:#19201C; --ground:#222925; color-scheme:dark }
+
+*{box-sizing:border-box}
+body{background:var(--bg); color:var(--fg); font-family:var(--f-body); font-size:15px; line-height:1.55;
+  padding-left:max(16px, env(safe-area-inset-left, 0px)); padding-right:max(16px, env(safe-area-inset-right, 0px)); padding-block:28px 64px}
+.wrap{max-width:1180px; margin:0 auto; display:flex; flex-direction:column; gap:40px}
+h1,h2{font-family:var(--f-display); font-weight:500; text-wrap:balance; margin:0; letter-spacing:-.01em}
+h1{font-size:clamp(34px,5.4vw,58px); line-height:1.02}
+h2{font-size:clamp(24px,3vw,32px); line-height:1.1}
+h3{font-size:15px; margin:0 0 4px; font-weight:600}
+p{margin:0; max-width:68ch}
+.eyebrow{font-family:var(--f-mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--brass)}
+.mono{font-family:var(--f-mono); font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+
+header.top{display:grid; grid-template-columns:minmax(0,1.3fr) minmax(0,1fr); gap:32px; align-items:end}
+header.top .lead{font-size:17px; color:var(--muted); margin-top:14px}
+.facts{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); border-top:1px solid var(--fg)}
+.fact{padding:12px 12px 0 0; display:flex; flex-direction:column; gap:2px}
+.fact b{font-family:var(--f-display); font-size:28px; font-weight:500; line-height:1.1}
+.fact span{font-size:13px; color:var(--muted)}
+
+.bar{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:center; justify-content:space-between}
+.group{display:flex; flex-wrap:wrap; gap:6px; align-items:center}
+.group-label{font-family:var(--f-mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin-right:4px}
+button{font:inherit; color:inherit}
+.seg{display:inline-flex; border:1px solid var(--fg); border-radius:999px; overflow:hidden}
+.seg button{background:transparent; border:0; padding:7px 14px; cursor:pointer; font-size:14px; white-space:nowrap}
+.seg button + button{border-left:1px solid var(--fg)}
+.seg button[aria-pressed="true"]{background:var(--fg); color:var(--bg)}
+.seg button small{font-family:var(--f-mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; opacity:.75; margin-left:5px}
+.chip{background:transparent; border:1px solid var(--line); border-radius:999px; padding:6px 12px; cursor:pointer; font-size:13px}
+.chip[aria-pressed="true"]{border-color:var(--accent); background:var(--accent); color:var(--accent-fg)}
+button:focus-visible, input:focus-visible{outline:2px solid var(--brass); outline-offset:2px}
+
+.stage{display:grid; grid-template-columns:minmax(0,1fr) 320px; gap:20px; align-items:start}
+.viewer{position:relative; height:clamp(380px,64vh,660px); background:var(--stage); border-radius:6px; overflow:hidden}
+.viewer canvas{display:block; width:100%; height:100%; touch-action:none; cursor:grab}
+.viewer canvas:active{cursor:grabbing}
+.labels{position:absolute; inset:0; pointer-events:none; overflow:hidden}
+.lbl{position:absolute; left:0; top:0; white-space:nowrap; font-size:12px; line-height:1.2; padding:4px 7px; border-radius:4px;
+  background:rgba(250,250,246,.92); color:#1B2420; box-shadow:0 1px 3px rgba(0,0,0,.18); will-change:transform}
+.lbl b{font-weight:600}
+.lbl .mono{font-size:11px; color:#5A645D; margin-left:4px}
+.lbl.dim{background:transparent; box-shadow:none; color:var(--fg); font-family:var(--f-mono); font-size:11px}
+.lbl.step{width:24px; height:24px; padding:0; border-radius:50%; display:grid; place-items:center; background:#94733A; color:#FFF8EA; font-family:var(--f-mono); font-size:12px; font-weight:500}
+.lbl.tag{font-size:10.5px; padding:2px 6px; background:rgba(36,71,58,.9); color:#F3F0E4; box-shadow:none; border-radius:3px}
+.equip{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px 28px}
+.equip h3{font-family:var(--f-mono); font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--brass); font-weight:500; margin:14px 0 4px}
+.equip label{display:grid; grid-template-columns:18px minmax(0,1fr); gap:8px; padding:6px 0; border-bottom:1px solid var(--line); font-size:14px; cursor:pointer}
+.equip input{margin:3px 0 0; accent-color:var(--accent)}
+.equip input:checked + span{color:var(--muted); text-decoration:line-through}
+@media (max-width:900px){ .equip{grid-template-columns:minmax(0,1fr)} }
+.hint{position:absolute; left:12px; bottom:10px; font-size:12px; color:var(--muted); background:var(--stage); padding:3px 8px; border-radius:4px; pointer-events:none}
+.nogl{position:absolute; inset:0; display:grid; place-items:center; padding:24px; text-align:center; color:var(--muted)}
+
+aside.legend{display:flex; flex-direction:column; gap:6px}
+.legend-head{display:flex; justify-content:space-between; align-items:baseline; border-bottom:1px solid var(--fg); padding-bottom:8px; margin-bottom:4px}
+.legend-head b{font-family:var(--f-display); font-size:24px; font-weight:500}
+.zone{display:grid; grid-template-columns:14px minmax(0,1fr) auto; gap:4px 10px; align-items:start; text-align:left; width:100%;
+  background:transparent; border:0; border-bottom:1px solid var(--line); padding:8px 2px; cursor:pointer}
+.zone .sw{width:14px; height:14px; border-radius:3px; margin-top:3px}
+.zone .nm{font-weight:500}
+.zone .m2{font-family:var(--f-mono); font-size:13px; font-variant-numeric:tabular-nums}
+.zone .ds{grid-column:2 / 4; font-size:13px; color:var(--muted); display:none}
+.zone[aria-expanded="true"] .ds{display:block}
+.zone[aria-expanded="true"] .nm{text-decoration:underline; text-decoration-color:var(--brass); text-underline-offset:3px}
+.legend-foot{font-size:13px; color:var(--muted); padding-top:6px}
+
+section{display:flex; flex-direction:column; gap:16px}
+.two{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:28px}
+.tablebox{overflow-x:auto}
+table{border-collapse:collapse; width:100%; min-width:560px; font-size:14px}
+th,td{padding:9px 10px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top}
+thead th{font-family:var(--f-mono); font-weight:500; font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); border-bottom:1px solid var(--fg)}
+td.n{font-family:var(--f-mono); font-variant-numeric:tabular-nums; text-align:right; white-space:nowrap}
+th.n{text-align:right}
+td.rec, th.rec{background:color-mix(in srgb, var(--accent) 10%, transparent)}
+.badge{display:inline-block; font-family:var(--f-mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; background:var(--accent); color:var(--accent-fg); padding:2px 6px; border-radius:3px; margin-left:6px; vertical-align:2px}
+.inline-input{display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:14px}
+input[type=number]{font:inherit; font-family:var(--f-mono); width:84px; padding:6px 8px; border:1px solid var(--line); border-radius:4px; background:var(--surface); color:var(--fg)}
+
+.calc{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:28px; align-items:start}
+.fields{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px}
+.fields label{display:flex; flex-direction:column; gap:4px; font-size:13px; color:var(--muted)}
+.result{border-left:3px solid var(--brass); padding:4px 0 4px 16px; display:flex; flex-direction:column; gap:10px}
+.result .big{font-family:var(--f-display); font-size:40px; line-height:1}
+.result .row{display:flex; justify-content:space-between; gap:12px; border-bottom:1px dashed var(--line); padding-bottom:6px; font-size:14px}
+.result .row span:last-child{font-family:var(--f-mono); font-variant-numeric:tabular-nums}
+.warn{color:#A4442B}
+
+ol.flow{list-style:none; padding:0; margin:0; display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:10px; counter-reset:f}
+ol.flow li{counter-increment:f; border-top:2px solid var(--brass); padding-top:8px; font-size:14px}
+ol.flow li::before{content:counter(f); font-family:var(--f-mono); font-size:12px; color:var(--brass); display:block}
+ul.check{list-style:none; padding:0; margin:0; display:flex; flex-direction:column}
+ul.check li{display:grid; grid-template-columns:18px minmax(0,1fr); gap:10px; padding:9px 0; border-bottom:1px solid var(--line); font-size:14px}
+ul.check li::before{content:""; width:12px; height:12px; border:1.5px solid var(--fg); border-radius:2px; margin-top:4px}
+ul.check li b{font-weight:600}
+footer{font-size:13px; color:var(--muted); border-top:1px solid var(--line); padding-top:14px; display:flex; flex-direction:column; gap:6px}
+
+@media (max-width:900px){
+  header.top{grid-template-columns:minmax(0,1fr)}
+  .stage{grid-template-columns:minmax(0,1fr)}
+  .two,.calc{grid-template-columns:minmax(0,1fr)}
+  ol.flow{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:480px){
+  .facts{grid-template-columns:minmax(0,1fr)}
+  .fact{padding:10px 0; border-bottom:1px solid var(--line)}
+  .seg button{padding:7px 10px}
+}
+@media (prefers-reduced-motion: reduce){ *{scroll-behavior:auto!important} }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow">LauxeN · Trench Coat Archive</div>
+      <h1>El local de trabajo</h1>
+      <p class="lead">Distribución completa para comprar, revisar, fotografiar, guardar y enviar gabardinas sin cruzarte contigo mismo. Gira el modelo, cambia de tamaño y compara.</p>
+    </div>
+    <div class="facts" aria-label="Recomendación">
+      <div class="fact"><b>70 m²</b><span>7 × 10 m · lo óptimo</span></div>
+      <div class="fact"><b id="factCap">120</b><span>gabardinas en 6 burros</span></div>
+      <div class="fact"><b>2,8 m</b><span>altura libre mínima</span></div>
+    </div>
+  </header>
+
+  <section aria-label="Plano 3D">
+    <div class="bar">
+      <div class="group">
+        <span class="group-label">Tamaño</span>
+        <div class="seg" role="group" aria-label="Tamaño del local">
+          <button type="button" id="v60" data-v="60" aria-pressed="false">60 m²</button>
+          <button type="button" id="v70" data-v="70" aria-pressed="true">70 m²<small>óptimo</small></button>
+          <button type="button" id="v90" data-v="90" aria-pressed="false">90 m²</button>
+        </div>
+      </div>
+      <div class="group">
+        <span class="group-label">Vista</span>
+        <div class="seg" role="group" aria-label="Vista">
+          <button type="button" id="cam3d" data-cam="3d" aria-pressed="true">3D</button>
+          <button type="button" id="camPlan" data-cam="plan" aria-pressed="false">Planta</button>
+          <button type="button" id="camStreet" data-cam="street" aria-pressed="false">Desde la calle</button>
+          <button type="button" id="camBoard" data-cam="board" aria-pressed="false">Tablero</button>
+        </div>
+      </div>
+      <div class="group">
+        <span class="group-label">Tablero</span>
+        <div class="seg" role="group" aria-label="Posición del tablero">
+          <button type="button" data-bd="up" aria-pressed="false">Recogido</button>
+          <button type="button" data-bd="flat" aria-pressed="false">Plano</button>
+          <button type="button" data-bd="tilt" aria-pressed="true">Inclinado</button>
+        </div>
+      </div>
+      <div class="group">
+        <button type="button" class="chip" id="tZones" aria-pressed="true">Zonas en color</button>
+        <button type="button" class="chip" id="tFlow" aria-pressed="false">Recorrido de una pieza</button>
+        <button type="button" class="chip" id="tLow" aria-pressed="false">Paredes bajas</button>
+        <button type="button" class="chip" id="tTags" aria-pressed="true">Nombre de cada cosa</button>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="viewer" id="viewer">
+        <canvas id="scene" aria-label="Modelo 3D del local"></canvas>
+        <div class="labels" id="labels"></div>
+        <div class="hint">Arrastra para girar · rueda o pellizco para acercar · Mayús + arrastrar para mover</div>
+      </div>
+      <aside class="legend" aria-label="Zonas">
+        <div class="legend-head"><b id="lgTitle">70 m²</b><span class="mono muted" id="lgDims">7 × 10 m</span></div>
+        <div id="zoneList"></div>
+        <p class="legend-foot" id="lgFoot"></p>
+      </aside>
+    </div>
+  </section>
+
+  <section aria-label="Comparativa">
+    <div class="eyebrow">La diferencia</div>
+    <h2>60, 70 o 90 m²</h2>
+    <p class="muted">Con 60 m² ya caben 120 gabardinas, pero el estudio queda justo (cámara a 2,3 m) y el embalaje sin sitio para moverte alrededor de la mesa. 70 m² da a cada zona la medida que pide una gabardina larga. 90 m² solo compensa si vas a recibir clientes con cita: añade showroom, probador, escaparate y un trastero.</p>
+    <div class="inline-input"><label for="rent">Alquiler de la zona</label><input type="number" id="rent" min="0" step="0.5" value="15"><span class="muted">€/m² al mes (orientativo, pon el real)</span></div>
+    <div class="tablebox"><table id="cmp"></table></div>
+  </section>
+
+  <section aria-label="Burros">
+    <div class="eyebrow">Tu burro de Leroy Merlin</div>
+    <h2>Cuántos burros comprar</h2>
+    <p class="muted">Tu burro es el extensible con ruedas de carga máxima 100 kg. El correo no trae las medidas: he supuesto unos 150 cm de barra. Mídelo y cambia el dato; el resultado se actualiza solo.</p>
+    <div class="calc">
+      <div class="fields">
+        <label for="cPz">Gabardinas a guardar<input type="number" id="cPz" min="1" value="100"></label>
+        <label for="cBar">Largo de barra (cm)<input type="number" id="cBar" min="40" value="150"></label>
+        <label for="cCm">Cm por gabardina en funda<input type="number" id="cCm" min="3" step="0.5" value="7.5"></label>
+        <label for="cHave">Burros que ya tienes<input type="number" id="cHave" min="0" value="1"></label>
+        <label for="cMar">Margen para crecer (%)<input type="number" id="cMar" min="0" value="20"></label>
+      </div>
+      <div class="result" aria-live="polite">
+        <div><span class="muted">Te faltan</span> <span class="big" id="rBuy">5</span> <span class="muted">burros</span></div>
+        <div class="row"><span>Gabardinas por burro</span><span id="rPer">20</span></div>
+        <div class="row"><span>Burros mínimos para el objetivo</span><span id="rMin">5</span></div>
+        <div class="row"><span>Burros con margen</span><span id="rWith">6</span></div>
+        <div class="row"><span>Peso por burro (1,8 kg por pieza)</span><span id="rKg">36 kg de 100</span></div>
+        <div class="row"><span>Pared que ocupan en dos filas</span><span id="rLen">4,8 m</span></div>
+        <p class="muted" style="font-size:13px">Aparte del stock: 1 burro para tintorería y costurera (lo que entra y sale) y 1 perchero individual para el estudio.</p>
+      </div>
+    </div>
+  </section>
+
+  <section aria-label="Equipamiento">
+    <div class="eyebrow">Equipamiento a medida</div>
+    <h2>Todo lo que va en el local</h2>
+    <p class="muted">Cada cosa está en el 3D de 70 m² con su nombre. Marca lo que ya tienes: se guarda en este navegador. Llevas <b class="mono" id="eqCount">0</b>.</p>
+    <div class="equip" id="equip"></div>
+  </section>
+
+  <section aria-label="Recorrido">
+    <div class="eyebrow">Cómo se mueve una pieza</div>
+    <h2>Recorrido de una gabardina</h2>
+    <ol class="flow">
+      <li>Llega el paquete y se apunta en el despacho</li>
+      <li>Taller: abrir, autenticar, vapor o a tintorería</li>
+      <li>Estudio: una sola sesión, manta o maniquí</li>
+      <li>Almacén: en funda con su LX a la vista</li>
+      <li>Embalaje grabado desde arriba</li>
+      <li>Sale el envío por la misma puerta</li>
+    </ol>
+  </section>
+
+  <section aria-label="Lo que faltaba">
+    <div class="two">
+      <div>
+        <div class="eyebrow">Para buscar local</div>
+        <h2 style="margin-bottom:12px">Qué tiene que tener</h2>
+        <ul class="check">
+          <li><span><b>65–75 m² útiles</b> en forma de rectángulo, unos 7 m de fachada por 10 m de fondo. Evita locales en L o con pilares en medio.</span></li>
+          <li><span><b>Altura libre de 2,8 m o más.</b> La cámara cenital cuelga a 2 m sobre la mesa de embalaje. El tablero recogido llega a 2,55 m.</span></li>
+          <li><span><b>Pared maciza donde va el tablero.</b> Se perfora para anclar unos 50 kg, así que tiene que ser de ladrillo u hormigón. En el plano es el tabique entre estudio y taller: si se levanta de pladur, hay que reforzarlo por dentro a esa altura.</span></li>
+          <li><span><b>Pie de calle sin escalón</b> y puerta de 90 cm o más, para cajas y burros con ruedas.</span></li>
+          <li><span><b>Una zona libre de 4,4 × 4,6 m</b> para el estudio: 2,7 m de manta más 2,7 m de distancia de cámara.</span></li>
+          <li><span><b>Baño ya hecho</b> (te ahorras la obra más cara) y ventilación para el vapor.</span></li>
+          <li><span><b>5,75 kW de potencia o más</b>, con la vaporera en un circuito aparte de los focos.</span></li>
+          <li><span><b>Sin sol directo</b> donde irán los burros: decolora el beige. En el escaparate, vinilo con filtro UV.</span></li>
+          <li><span><b>Uso permitido</b> como almacén u oficina (o comercio, si quieres recibir clientes). Pídele al gestor que lo confirme con el ayuntamiento antes de firmar.</span></li>
+          <li><span><b>Cerca de tus puntos de envío</b> de InPost, GLS y DHL: vas cada día.</span></li>
+        </ul>
+      </div>
+      <div>
+        <div class="eyebrow">Lo que no habías dicho</div>
+        <h2 style="margin-bottom:12px">Te lo añado</h2>
+        <ul class="check">
+          <li><span><b>Burro de tintorería y costurera</b>, separado del stock, para saber qué está fuera.</span></li>
+          <li><span><b>Estante de llegadas y de devoluciones</b>: paquetes sin abrir y piezas en disputa, aparte de lo que está a la venta.</span></li>
+          <li><span><b>Perchas de madera iguales</b> de hombro ancho y <b>fundas transpirables</b>, nunca de plástico, con el LX visible.</span></li>
+          <li><span><b>Deshumidificador e higrómetro</b>: humedad entre 45 y 55 % para la gabardina y el forro.</span></li>
+          <li><span><b>Impresora térmica de etiquetas y báscula</b> en la zona de embalaje.</span></li>
+          <li><span><b>Luz de color fiel</b>: 5.000–5.600 K y CRI 95 o más en el estudio y el embalaje, para que el beige salga beige.</span></li>
+          <li><span><b>Fondo de vídeo de marca</b>: la cortina verde del almacén sale detrás de la mesa de embalaje.</span></li>
+          <li><span><b>Kit de cuidado</b>: cepillo de ropa, quitapelusas eléctrico y rodillo, junto a la vaporera.</span></li>
+          <li><span><b>Carro con ruedas</b> para mover piezas del taller al estudio sin cargar a mano.</span></li>
+          <li><span><b>Extintor y botiquín</b> (los exige la licencia), <b>alarma, cámaras y seguro</b> del stock.</span></li>
+          <li><span><b>Microondas fuera del baño</b>, en un rincón junto al despacho con una nevera pequeña. Comer dentro del baño no es higiénico.</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>Supuestos: barra del burro de unos 150 cm (sin confirmar), 7,5 cm por gabardina en funda, 1,8 kg por pieza con percha. Las medidas de cada zona son interiores y salen del propio modelo.</span>
+    <span>Mesa de embalaje 180 × 90 cm a 90 cm de alto · Tablero abatible de 2,2 × 1,7 m con bisagra a 85 cm, medido con tus 240 piezas del Maestro (largo máximo 132 cm, 190 cm con los brazos abiertos) · Manta fotográfica 2,7 m · Pasillos de 1 m o más.</span>
+  </footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+"use strict";
+const PI = Math.PI;
+const fmt = (n, d=1) => n.toLocaleString('es-ES', {minimumFractionDigits:0, maximumFractionDigits:d});
+
+/* ---------- Zonas ---------- */
+const ZI = {
+  despacho:{n:'Entrada y despacho', c:'#A99BC6', f:'#A97F55', d:'Escritorio con ordenador e impresora de etiquetas, de cara a la puerta. Rincón con microondas y nevera pequeña.'},
+  embalaje:{n:'Embalaje y grabación', c:'#C98F5E', f:'#BDB6AA', d:'Mesa isla de 180 × 90 cm a 90 cm de alto: doblas la gabardina entera sin que cuelgue. Pórtico con cámara cenital a 2 m, cámara lateral, dos paneles LED y estantería con cajas, papel de seda, tarjetas y hebillas.'},
+  estudio:{n:'Estudio · 2 sets', c:'#7FA3C6', f:'#D8D6D1', d:'Set 1: manta fotográfica de 2,7 m con maniquí o perchero, cámara a 2,7 m. Set 2: tablero de aglomerado de 2,2 × 1,7 m anclado a la pared con la manta encima. Se recoge hacia arriba y se baja plano o inclinado 20°, con la cámara perpendicular a 1,25 m y dos luces LED con pinza en los lados. Cerrado para que la luz no cambie.'},
+  almacen:{n:'Almacén de burros', c:'#5F9277', f:'#BDB6AA', d:'Burros en dos filas con pasillo de más de 1 m y un cartel por modelo. Cada funda lleva su LX. Cortina antipolvo verde, que es también el fondo del vídeo de embalaje. Deshumidificador e higrómetro.'},
+  taller:{n:'Taller', c:'#D07A52', f:'#BDB6AA', d:'Abres el paquete, autenticas y vaporizas en la mesa de restauración con lámpara de lupa. Burro de tintorería y costurera para lo que entra y sale.'},
+  costura:{n:'Costura y material', c:'#B8A15A', f:'#BDB6AA', d:'Mesa para la máquina de coser de columna con su lámpara, organizador de hebillas por color y tamaño, estantes de material (sobrante de shooting, cajas, repuestos) y burro de devoluciones y disputas.'},
+  bano:{n:'Baño', c:'#8FA0A8', f:'#CBD3D6', d:'Inodoro y lavabo. Si ya existe en el local, te ahorras la obra más cara.'},
+  showroom:{n:'Showroom y despacho', c:'#C9A15E', f:'#A97F55', d:'Recibes al cliente con cita. Sillones, burro expositor y tu escritorio. Vidrio hacia el embalaje: el cliente ve cómo se prepara su pieza.'},
+  probador:{n:'Probador', c:'#B7869A', f:'#A97F55', d:'Cortina y espejo de cuerpo entero. Aquí confirmas el fit en persona.'},
+  escaparate:{n:'Escaparate', c:'#E3C27A', f:'#A97F55', d:'Una pieza en maniquí vista desde la calle, con vinilo UV.'},
+  material:{n:'Trastero y office', c:'#9C8F6E', f:'#BDB6AA', d:'Estanterías de material (hebillas, sobrante de shooting, cajas plegadas) y rincón con microondas.'}
+};
+
+/* ---------- Variantes (medidas en metros, x = ancho de fachada, z = fondo) ---------- */
+const V = {
+ 60:{W:6, D:10, door:[1.0,2.0], burrosStock:6, burrosTotal:7, clients:'No', probadores:0, camDist:'2,3 m',
+  foot:'Todo cabe, pero justo: cámara a 2,3 m de la manta y 75 cm alrededor de la mesa de embalaje. El nombre de cada cosa sale en el de 70 m².',
+  zones:[['despacho',0,0,2.6,2.8],['embalaje',2.6,0,6,2.8],['estudio',0,2.8,3.8,7.2],['almacen',3.8,2.8,6,8.6],['taller',0,7.2,3.8,10],['bano',3.8,8.6,6,10]],
+  parts:[[0,2.8,1.6,2.8],[2.5,2.8,3.8,2.8],[3.8,2.8,4.4,2.8],[5.45,2.8,6,2.8],[3.8,2.8,3.8,7.2],[0,7.2,3.8,7.2],[3.8,8.6,6,8.6],[3.8,9.6,3.8,10]],
+  curtains:[[4.4,2.8,5.45,2.8]],
+  accents:[[2.6,2.74,3.8,2.74,null],[0.012,0,0.012,2.8,'left']],
+  items:[
+   ['desk',0.42,1.25,PI/2],['office',0.6,2.53,PI],['plant',2.35,0.3],
+   ['packisle',4.0,1.45,1.6,0.8],['tripod',4.0,0.35,4.0,1.45],['led',2.95,0.75,4.0,1.45],['led',5.15,0.4,4.0,1.45],['shelf',5.77,1.45,2.4,-PI/2],
+   ['backdrop',0.06,4.6,PI/2,2.7],['manq',0.95,4.05,PI/2,'#C9A46E',0],['burro',0.95,5.25,'z',0.8,'coat',1],['tripod',3.2,4.6,0.95,4.6],
+   ['board',2.3,7.2,2.2,1.7],['softbox',1.9,3.3,0.95,4.6],['softbox',0.8,6.0,2.3,6.4],
+   ['burro',5.7,3.65,'z',1.5,'bag',20],['burro',5.7,5.25,'z',1.5,'bag',20],['burro',5.7,6.85,'z',1.5,'bag',20],
+   ['burro',4.15,3.65,'z',1.5,'bag',20],['burro',4.15,5.25,'z',1.5,'bag',20],['burro',4.15,6.85,'z',1.5,'bag',20],
+   ['shelf',5.77,8.1,0.9,-PI/2],['dehum',4.9,8.35],
+   ['burro',1.3,7.55,'x',1.5,'mix',8],['work',1.5,9.6,1.6,0.7,PI],['steamer',2.65,9.7],['sewing',0.3,8.55,PI/2],
+   ['toilet',5.65,9.5,-PI/2],['sink',4.85,9.8,PI]
+  ],
+  route:[[1.5,0.45,1],[2.9,2.3],[4.9,2.45],[4.9,7.95],[2.9,8.4,2],[4.9,7.95],[4.9,2.45],[2.05,2.45],[2.05,3.3],[2.0,4.7,3],[2.05,3.3],[2.05,2.45],[4.9,2.45],[4.9,5.2,4],[4.9,2.45],[4.0,2.3,5],[2.9,2.3],[1.5,0.45,6]]
+ },
+ 70:{W:7, D:10, door:[1.2,2.2], burrosStock:6, burrosTotal:7, clients:'No', probadores:0, camDist:'2,7 m',
+  foot:'La medida óptima: cada zona tiene el ancho y el largo que pide una gabardina, sin metros que pagues y no uses.',
+  zones:[['despacho',0,0,3.0,3.2],['embalaje',3.0,0,7,3.2],['estudio',0,3.2,4.4,7.8],['almacen',4.4,3.2,7,8.1],['costura',4.4,8.1,7,10],['taller',1.8,7.8,4.4,10],['bano',0,7.8,1.8,10]],
+  parts:[[0,3.2,2.0,3.2],[2.9,3.2,4.4,3.2],[4.4,3.2,4.95,3.2],[6.5,3.2,7,3.2],[4.4,3.2,4.4,7.8],[0,7.8,4.4,7.8],[1.8,8.8,1.8,10]],
+  curtains:[[4.95,3.2,6.5,3.2]],
+  accents:[[2.9,3.14,4.4,3.14,null],[0.012,0,0.012,3.2,'left']],
+  items:[
+   ['desk',0.42,1.25,PI/2,true],['office',0.6,2.93,PI],['tablon',0.03,1.25,PI/2],['llegadas',2.6,0.3],
+   ['extintor',0.95,0.15],['wallbox',0.03,1.4,0.4,0.03,0.18,0.12,'#E8E8E4'],['wallbox',0.03,1.45,2.35,0.03,0.3,0.25,'#F4F4F2'],['wallbox',1.7,2.42,0.06,0.35,0.14,0.03,'#2E8B57',1],
+   ['camsec',0.15,0.15],['camsec',6.85,0.15],['camsec',6.85,9.85],['camsec',0.15,7.65],
+   ['packisle',4.9,1.6,1.8,0.9],['tripod',4.9,0.4,4.9,1.6],['led',3.45,1.0,4.9,1.6],['led',6.2,2.6,4.9,1.6],['shelf',6.77,2.05,1.7,-PI/2],
+   ['shipdesk',6.75,0.65,-PI/2],['crates',3.75,0.3],
+   ['backdrop',0.06,5.15,PI/2,2.7],['manq',0.95,4.55,PI/2,'#C9A46E',0],['burro',0.95,5.85,'z',0.8,'coat',1],['tripod',3.7,5.15,0.95,5.15],
+   ['board',2.55,7.8,2.2,1.7],['softbox',2.0,3.75,0.95,5.0],['softbox',0.9,6.6,2.55,7.0],
+   ['tape',0.95,4.55],['tape',0.95,5.85],['tape',3.7,5.15],['tape',2.55,5.55],['ruler',0.02,6.85,PI/2],
+   ['wallbox',3.55,1.3,3.27,0.3,0.42,0.01,'#FFFFFF'],['prepcart',4.05,6.1],
+   ['burro',6.7,4.15,'z',1.5,'bag',20,true],['burro',6.7,5.75,'z',1.5,'bag',20,true],['burro',6.7,7.35,'z',1.5,'bag',20,true],
+   ['burro',4.75,4.15,'z',1.5,'bag',20,true],['burro',4.75,5.75,'z',1.5,'bag',20,true],['burro',4.75,7.35,'z',1.5,'bag',20,true],
+   ['dehum',6.1,7.95],['wallbox',6.98,1.9,3.35,0.02,0.12,0.08,'#DADAD5'],
+   ['sewing',6.7,8.9,-PI/2],['organizer',4.85,9.78,PI],['shelf',6.1,9.77,1.6,PI],['burro',5.0,8.4,'x',0.9,'mix',4],
+   ['burro',3.1,8.15,'x',1.5,'mix',8],['work',2.95,9.6,1.6,0.7,PI],['steamer',4.1,9.65],
+   ['toilet',0.35,9.45,PI/2],['sink',1.2,9.8,PI]
+  ],
+  tags:[
+   [0.42,1.3,1.0,'Escritorio 150×70 · 2 pantallas'],[0.3,1.0,1.85,'Impresora color · cartas en 8 idiomas'],[0.27,0.45,0.7,'Mac del bot + SAI + router'],
+   [0.05,2.15,1.25,'Tablón del día'],[0.6,1.3,2.93,'Microondas · nevera · hervidor'],[2.6,1.05,0.3,'Estante de llegadas'],
+   [0.95,0.65,0.15,'Extintor'],[0.05,1.75,2.35,'Botiquín'],[0.05,1.65,0.4,'Alarma'],[1.7,2.65,0.06,'Salida'],[0.15,2.95,0.15,'Cámara de seguridad'],
+   [4.9,2.35,1.6,'Cámara cenital + micro'],[4.9,1.05,1.85,'Mesa 180×90 a 90 cm'],[4.9,1.6,0.4,'Cámara lateral'],[3.45,1.85,1.0,'Panel LED'],
+   [6.77,2.15,2.05,'Kit LauxeN: cajas, seda, sello, hebillas, tarjeta 🌹, fundas'],[6.75,1.15,0.65,'Impresora térmica + báscula'],[3.75,0.55,0.3,'Bandejas InPost · GLS · DHL'],
+   [0.95,1.95,4.55,'Maniquí, siempre el mismo'],[0.95,1.85,5.85,'Perchero de foto'],[0.15,2.75,5.15,'Manta fotográfica 2,7 m'],
+   [3.7,1.65,5.15,'Trípode fijo + disparador'],
+   [0.05,1.8,6.85,'Regla de longitud total, 0 en la percha'],[1.9,0.1,5.15,'Marcas en el suelo'],[3.55,1.85,3.27,'Ajustes de cámara y luz'],
+   [4.05,1.1,6.1,'Quitapelusas · cepillo · vaporera de mano · carta de color'],[2.0,2.1,3.75,'Luz 5.000 K · CRI 95'],
+   [6.7,1.9,4.15,'Kensington'],[6.7,1.9,5.75,'Chelsea'],[6.7,1.9,7.35,'Sandringham'],[4.75,1.9,4.15,'Westminster'],[4.75,1.9,5.75,'Vintage'],[4.75,1.9,7.35,'Otros modelos'],
+   [5.7,2.45,3.2,'Cortina = fondo del vídeo'],[6.1,0.75,7.95,'Deshumidificador'],[6.98,2.15,3.35,'Higrómetro 45–55 %'],[5.7,0.35,5.75,'Fundas de tela con etiqueta LX'],
+   [6.7,1.35,8.9,'Máquina de coser de columna'],[4.85,1.35,9.78,'Organizador de hebillas'],[6.1,2.15,9.77,'Material: sobrante de shooting, cajas, repuestos'],[5.0,1.85,8.4,'Devoluciones y disputas'],
+   [3.1,1.85,8.15,'Tintorería y costurera'],[2.95,1.45,9.6,'Mesa de restauración + lupa'],[4.1,1.95,9.65,'Vaporera'],[3.5,2.2,-0.25,'Vinilo UV + persiana']
+  ],
+  route:[[1.7,0.5,1],[3.4,2.6],[5.7,2.75],[5.7,8.95],[3.2,9.0,2],[5.7,8.95],[5.7,2.75],[2.45,2.75],[2.45,3.6],[2.4,5.0,3],[2.45,3.6],[2.45,2.75],[5.7,2.75],[5.7,5.8,4],[5.7,2.75],[4.9,2.5,5],[3.4,2.6],[1.7,0.5,6]]
+ },
+ 90:{W:9, D:10, door:[2.6,3.8], burrosStock:8, burrosTotal:10, clients:'Sí, con cita', probadores:1, camDist:'2,9 m',
+  foot:'Añade la parte de clientes y un trastero. El stock sube a 160 piezas. El nombre de cada cosa sale en el de 70 m².',
+  zones:[['escaparate',0,0,1.2,1.8],['probador',0,1.8,1.2,3.6],['showroom',1.2,0,5.4,3.6],['embalaje',5.4,0,9,3.6],['estudio',0,3.6,4.6,8.2],['taller',4.6,3.6,6.4,10],['almacen',6.4,3.6,9,10],['bano',0,8.2,2.0,10],['material',2.0,8.2,4.6,10]],
+  parts:[[0,1.8,1.2,1.8],[0,3.6,2.6,3.6],[3.5,3.6,4.6,3.6],[4.6,3.6,5.4,3.6],[4.6,3.6,4.6,8.2],[0,8.2,4.6,8.2],[2.0,8.2,2.0,8.4],[2.0,9.2,2.0,10],[6.4,3.6,7.0,3.6],[8.45,3.6,9,3.6]],
+  glass:[[5.4,0,5.4,2.6]],
+  curtains:[[1.2,1.85,1.2,3.55],[7.0,3.6,8.45,3.6]],
+  accents:[[0.012,1.8,0.012,3.6,'left']],
+  items:[
+   ['plinth',0.6,0.9,0.9,1.3,0.15],['manq',0.6,0.9,PI,'#C9A46E',0.15],['mirror',0.04,2.7,PI/2],
+   ['rug',3.9,1.4,2.0,1.7,'#2E4A3E'],['arm',4.75,0.85,-PI/2],['arm',4.75,1.95,-PI/2],['ctable',3.95,1.4],
+   ['desk',2.2,2.2,0],['burro',4.45,3.3,'x',1.5,'coat',8],['plant',5.15,0.3],['plant',1.5,0.3],
+   ['packisle',6.9,1.6,1.8,0.9],['tripod',6.9,0.4,6.9,1.6],['led',5.85,0.55,6.9,1.6],['led',8.0,0.45,6.9,1.6],['shelf',8.77,1.8,2.8,-PI/2],
+   ['backdrop',0.06,5.55,PI/2,2.7],['manq',0.95,5.0,PI/2,'#C9A46E',0],['burro',0.95,6.2,'z',0.8,'coat',1],['tripod',3.9,5.55,0.95,5.55],
+   ['board',2.85,8.2,2.2,1.7],['softbox',2.1,4.15,0.95,5.3],['softbox',1.2,7.0,2.85,7.4],
+   ['work',4.95,5.2,1.8,0.7,PI/2],['steamer',5.0,6.6],['sewing',4.88,7.6,PI/2],['burro',6.1,8.1,'z',1.5,'mix',8],
+   ['burro',8.7,4.4,'z',1.5,'bag',20],['burro',8.7,6.0,'z',1.5,'bag',20],['burro',8.7,7.6,'z',1.5,'bag',20],['burro',8.7,9.2,'z',1.5,'bag',20],
+   ['burro',6.75,4.4,'z',1.5,'bag',20],['burro',6.75,6.0,'z',1.5,'bag',20],['burro',6.75,7.6,'z',1.5,'bag',20],['burro',6.75,9.2,'z',1.5,'bag',20],
+   ['shelf',3.3,9.77,2.4,PI],['office',2.6,8.48,0],['dehum',4.3,8.5],
+   ['toilet',0.35,9.5,PI/2],['sink',1.35,9.8,PI]
+  ],
+  route:[[3.2,0.45,1],[5.1,2.7],[5.9,3.2],[5.6,8.8],[5.3,7.0,2],[5.6,8.8],[5.9,3.2],[3.05,3.2],[3.05,4.0],[2.4,5.6,3],[3.05,4.0],[3.05,3.2],[5.9,3.2],[7.7,3.4],[7.7,6.5,4],[7.7,3.4],[6.9,2.6,5],[5.1,2.7],[3.2,0.45,6]]
+ }
+};
+const STEPS = ['Llega el paquete','Taller: revisar y vapor','Estudio: fotos','Almacén: en funda','Embalaje grabado','Sale el envío'];
+const ORDER = [60,70,90];
+
+/* ---------- Escena ---------- */
+const viewer = document.getElementById('viewer');
+const canvas = document.getElementById('scene');
+const labelsEl = document.getElementById('labels');
+let renderer;
+try { renderer = new THREE.WebGLRenderer({canvas, antialias:true}); }
+catch(e){ const d=document.createElement('div'); d.className='nogl'; d.textContent='Tu navegador no puede mostrar el 3D. La leyenda, la comparativa y el calculador siguen funcionando.'; viewer.appendChild(d); }
+
+const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const BOARD_TILT = 20*Math.PI/180;
+let boardPos = 'tilt';
+let cur = 70, zonesOn = true, flowOn = false, lowWalls = false, tagsOn = !matchMedia('(max-width:700px)').matches, selected = null, camMode = '3d';
+try { const s = localStorage.getItem('lauxen-local-v'); if (s && V[s]) cur = +s; } catch(e){}
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 200);
+const root = new THREE.Group(); scene.add(root);
+let model = new THREE.Group(); root.add(model);
+let groundMat, dirty = true;
+
+if (renderer){
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, 2));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x9a9488, 0.82));
+  scene.add(new THREE.AmbientLight(0xffffff, 0.12));
+  const sun = new THREE.DirectionalLight(0xffffff, 0.55);
+  sun.position.set(3, 16, -6); sun.castShadow = true;
+  sun.shadow.mapSize.set(2048,2048);
+  Object.assign(sun.shadow.camera, {left:-9,right:9,top:9,bottom:-9,near:1,far:40});
+  sun.shadow.bias = -0.0006;
+  scene.add(sun);
+  groundMat = new THREE.MeshStandardMaterial({color:'#d9dbd2', roughness:1});
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(120,120), groundMat);
+  ground.rotation.x = -PI/2; ground.position.y = -0.03; ground.receiveShadow = true;
+  scene.add(ground);
+}
+
+/* materiales */
+const matCache = {};
+function M(color, o){
+  o = o || {};
+  const key = color + '|' + (o.r??'') + '|' + (o.m??'') + '|' + (o.op??'') + '|' + (o.e??'');
+  if (matCache[key]) return matCache[key];
+  const m = new THREE.MeshStandardMaterial({color, roughness:o.r ?? 0.8, metalness:o.m ?? 0});
+  if (o.op != null){ m.transparent = true; m.opacity = o.op; m.depthWrite = false; }
+  if (o.e) { m.emissive = new THREE.Color(o.e); m.emissiveIntensity = 0.5; }
+  return (matCache[key] = m);
+}
+function box(p, w,h,d, x,y,z, color, o){
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), M(color,o));
+  m.position.set(x, y + h/2, z); m.castShadow = !(o && o.noShadow); m.receiveShadow = true; p.add(m); return m;
+}
+function cyl(p, rt,rb,h, x,y,z, color, o, seg){
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,seg||18), M(color,o));
+  m.position.set(x, y + h/2, z); m.castShadow = true; m.receiveShadow = true; p.add(m); return m;
+}
+function grp(x,z,rot,y){ const g = new THREE.Group(); g.position.set(x, y||0, z); g.rotation.y = rot||0; model.add(g); return g; }
+const faceTo = (x,z,tx,tz) => Math.atan2(tx-x, tz-z);
+
+/* random determinista */
+let seed = 7;
+const rnd = () => (seed = (seed*16807) % 2147483647) / 2147483647;
+
+const COATS = ['#C9A46E','#D2B48C','#B88A4E','#CDBFA6','#2B3448','#C29B62','#232323','#A89772','#D8C3A0'];
+const BAGS = ['#E9E8E3','#DEDCD5','#E3E1DA'];
+const METAL = '#9A9C9B', DARK = '#26302B', OAK = '#8B6A47', WHITE = '#F3F2EE', KRAFT = '#B88B5A', GREEN = '#2E4A3E';
+
+/* ---------- Muebles ---------- */
+const B = {
+  burro(x,z,axis,len,mode,n,sign){
+    const g = grp(x,z, axis==='z' ? PI/2 : 0);
+    const L = len/2;
+    [-L,L].forEach(ex=>{
+      box(g,0.04,0.035,0.55, ex,0.05,0, METAL,{m:.6,r:.4});
+      cyl(g,0.014,0.014,1.58, ex,0.08,0, METAL,{m:.6,r:.4},8);
+      [-0.24,0.24].forEach(ez=>cyl(g,0.03,0.03,0.05, ex,0,ez, '#333',{},10));
+    });
+    const bar = cyl(g,0.014,0.014,len, 0,1.62,0, METAL,{m:.6,r:.4},8);
+    bar.rotation.z = PI/2; bar.position.y = 1.64;
+    if (sign) box(g,0.34,0.1,0.02, 0,1.68,0, GREEN);
+    const sp = (len-0.08)/n;
+    for (let i=0;i<n;i++){
+      const cx = -L + 0.04 + sp*(i+0.5);
+      let col, h=1.12, d=0.5, th=Math.min(0.055, sp*0.8);
+      if (mode==='bag'){ col = BAGS[i%3]; h=1.2; d=0.56; }
+      else col = COATS[(i*3 + (mode==='mix'?5:0)) % COATS.length];
+      box(g, th, h, d, cx, 1.58-h, 0, col, {r:.95});
+      box(g, 0.01, 0.05, 0.01, cx, 1.58, 0, '#6b5132');
+    }
+  },
+  manq(x,z,rot,col,base){
+    const g = grp(x,z,rot,base||0);
+    cyl(g,0.17,0.17,0.03, 0,0,0, DARK);
+    cyl(g,0.012,0.012,0.5, 0,0.03,0, METAL,{m:.6},8);
+    cyl(g,0.2,0.28,1.05, 0,0.5,0, col,{r:.9},22);
+    cyl(g,0.226,0.232,0.05, 0,1.08,0, '#8E6B3C',{r:.9},22);
+    cyl(g,0.15,0.2,0.1, 0,1.55,0, col,{r:.9},22);
+    cyl(g,0.045,0.05,0.12, 0,1.65,0, '#ECE7DE');
+    [-0.23,0.23].forEach(ax=>cyl(g,0.045,0.05,0.72, ax,0.85,0, col,{r:.9},10));
+  },
+  plinth(x,z,w,d,h){ box(model,w,h,d,x,0,z,'#E8E2D4'); },
+  desk(x,z,rot,full){
+    const g = grp(x,z,rot);
+    box(g,1.5,0.04,0.7, 0,0.72,0, OAK,{r:.6});
+    [[-.7,-.3],[.7,-.3],[-.7,.3],[.7,.3]].forEach(([a,b])=>box(g,0.04,0.72,0.04,a,0,b,DARK));
+    (full ? [-0.15,0.4] : [0.1]).forEach(mx=>{ box(g,0.52,0.34,0.025, mx,0.86,-0.22,'#151a17',{r:.3}); box(g,0.06,0.1,0.06, mx,0.76,-0.22,DARK); });
+    box(g,0.28,0.15,0.3, full?-0.6:-0.52,0.76,-0.12,'#DADAD5');
+    if (full){ box(g,0.2,0.04,0.2, 0.4,0.76,0.12,'#C9CBCB',{m:.5,r:.3}); box(g,0.15,0.25,0.38, 0.55,0,-0.12,'#1d1f1e'); box(g,0.22,0.04,0.15, 0.55,0.25,-0.12,'#F2F2F0'); }
+    box(g,0.46,0.06,0.46, 0,0.44,0.55,'#2F3A35');
+    box(g,0.46,0.5,0.05, 0,0.5,0.78,'#2F3A35');
+    cyl(g,0.03,0.03,0.44, 0,0,0.55,DARK,{},8);
+  },
+  office(x,z,rot){
+    const g = grp(x,z,rot);
+    box(g,1.0,0.9,0.5, 0,0,0,'#EDEBE5');
+    box(g,0.46,0.28,0.36, -0.2,0.9,0,'#2A2D2B',{r:.4});
+    box(g,0.3,0.2,0.02, -0.25,0.94,0.185,'#1a1d1b',{r:.2});
+    cyl(g,0.07,0.08,0.22, 0.3,0.9,0,'#B9BBB8',{m:.5,r:.3});
+    box(g,0.46,0.5,0.02, 0.24,0.08,0.255,'#DCDAD3');
+  },
+  arm(x,z,rot){
+    const g = grp(x,z,rot), c = '#7A4430';
+    box(g,0.8,0.42,0.78, 0,0,0,c,{r:.55});
+    box(g,0.8,0.42,0.16, 0,0.42,-0.31,c,{r:.55});
+    [-0.34,0.34].forEach(ax=>box(g,0.12,0.2,0.78, ax,0.42,0,c,{r:.55}));
+  },
+  ctable(x,z){ cyl(model,0.06,0.1,0.38,x,0,z,DARK); cyl(model,0.34,0.34,0.03,x,0.38,z,'#A8843E',{m:.5,r:.35},28); },
+  rug(x,z,w,d,c){ const m = box(model,w,0.012,d,x,0.006,z,c,{r:1}); m.castShadow=false; },
+  mirror(x,z,rot){
+    const g = grp(x,z,rot);
+    box(g,0.66,1.86,0.04, 0,0.08,0,'#A8843E',{m:.5,r:.4});
+    box(g,0.58,1.76,0.045, 0,0.13,0.004,'#C6D6DA',{m:.7,r:.08});
+  },
+  plant(x,z){ cyl(model,0.16,0.12,0.38,x,0,z,'#3B3B38'); const s = new THREE.Mesh(new THREE.SphereGeometry(0.3,14,10), M('#4E6B45',{r:.9})); s.position.set(x,0.72,z); s.castShadow=true; model.add(s); const s2=s.clone(); s2.scale.setScalar(.7); s2.position.set(x+.08,1.0,z-.05); model.add(s2); },
+  backdrop(x,z,rot,w){
+    const g = grp(x,z,rot);
+    [-w/2-0.05, w/2+0.05].forEach(ex=>cyl(g,0.015,0.015,2.7, ex,0,0.12,DARK,{},8));
+    const cb = cyl(g,0.02,0.02,w+0.2, 0,2.62,0.12,DARK,{},8); cb.rotation.z = PI/2;
+    box(g,w,2.55,0.012, 0,0.06,0.13,'#E9E2D6',{r:1});
+    box(g,w,0.008,1.5, 0,0,0.85,'#E9E2D6',{r:1, noShadow:true});
+  },
+  softbox(x,z,tx,tz){
+    const g = grp(x,z,faceTo(x,z,tx,tz));
+    [0,2.1,4.2].forEach(a=>{ const l = box(g,0.02,0.02,0.45, Math.sin(a)*0.18,0,Math.cos(a)*0.18,DARK); l.rotation.y=a; });
+    cyl(g,0.014,0.014,1.65, 0,0,0,DARK,{},8);
+    box(g,0.62,0.62,0.32, 0,1.38,0,'#2A2A2A');
+    box(g,0.6,0.6,0.01, 0,1.39,0.165,'#FFFDF5',{e:'#FFF7E6', noShadow:true});
+  },
+  led(x,z,tx,tz){
+    const g = grp(x,z,faceTo(x,z,tx,tz));
+    cyl(g,0.012,0.012,1.55, 0,0,0,DARK,{},8);
+    box(g,0.42,0.3,0.05, 0,1.5,0,'#222');
+    box(g,0.38,0.26,0.01, 0,1.52,0.03,'#FFFDF5',{e:'#FFF7E6', noShadow:true});
+  },
+  tripod(x,z,tx,tz){
+    const g = grp(x,z,faceTo(x,z,tx,tz));
+    [0,2.1,4.2].forEach(a=>{ const l = cyl(g,0.012,0.012,1.35, Math.sin(a)*0.16,0,Math.cos(a)*0.16,DARK,{},6); l.rotation.x = Math.cos(a)*0.12; l.rotation.z = -Math.sin(a)*0.12; });
+    box(g,0.14,0.1,0.08, 0,1.36,0,'#111',{r:.4});
+    const lens = cyl(g,0.035,0.035,0.08, 0,1.41,0.08,'#111',{r:.3},12); lens.rotation.x = PI/2; lens.position.set(0,1.41,0.08);
+  },
+  packisle(x,z,w,d){
+    const g = grp(x,z,0);
+    box(g,w,0.04,d, 0,0.88,0,'#D8C7A6',{r:.6});
+    [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(([a,b])=>box(g,0.04,0.88,0.04, a*(w/2-0.05),0,b*(d/2-0.05),DARK));
+    box(g,w-0.1,0.02,d-0.1, 0,0.28,0,'#8E9190');
+    for (let i=0;i<4;i++) box(g,0.36,0.22,0.5, -w/2+0.3+i*0.4,0.3,0,KRAFT);
+    box(g,0.55,0.06,0.62, -0.25,0.92,0,'#C9A46E',{r:.95});
+    box(g,0.5,0.12,0.4, 0.45,0.92,0.05,'#1F2A26');
+    box(g,0.46,0.01,0.36, 0.45,1.04,0.05,'#F4EFE6');
+    const roll = cyl(g,0.05,0.05,0.5, 0.0,0.92,-d/2+0.08,'#F7F4EE',{},12); roll.rotation.z = PI/2; roll.position.y = 0.97;
+    [-1,1].forEach(s=>cyl(g,0.022,0.022,2.15, s*(w/2+0.12),0,0,DARK,{},8));
+    const beam = cyl(g,0.025,0.025,w+0.3, 0,2.12,0,DARK,{},8); beam.rotation.z = PI/2; beam.position.y = 2.15;
+    box(g,0.14,0.12,0.1, 0,1.98,0,'#111');
+    box(g,0.04,0.12,0.04, 0.2,1.98,0,'#111');
+    box(g,0.7,0.03,0.12, 0,2.1,0.2,'#FFFDF5',{e:'#FFF7E6', noShadow:true});
+  },
+  shelf(x,z,len,rot){
+    const g = grp(x,z,rot);
+    [-len/2+0.02, len/2-0.02].forEach(ex=>[-0.2,0.2].forEach(ez=>box(g,0.03,2.0,0.03, ex,0,ez,'#6E7270')));
+    [0.12,0.62,1.12,1.62].forEach((y,j)=>{
+      box(g,len,0.02,0.45, 0,y,0,'#8E9190',{m:.3});
+      let px = -len/2 + 0.08;
+      while (px < len/2 - 0.3){
+        const bw = 0.25 + rnd()*0.2, bh = 0.18 + rnd()*0.22;
+        const col = (j===3 && rnd()>.5) ? '#E8E2D4' : (rnd()>.75 ? GREEN : KRAFT);
+        if (px + bw > len/2 - 0.05) break;
+        box(g,bw,bh,0.34, px+bw/2,y+0.02,0,col);
+        px += bw + 0.05;
+      }
+    });
+  },
+  work(x,z,w,d,rot){
+    const g = grp(x,z,rot);
+    box(g,w,0.04,d, 0,0.88,0,'#C9B79C',{r:.6});
+    [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(([a,b])=>box(g,0.04,0.88,0.04, a*(w/2-0.05),0,b*(d/2-0.05),DARK));
+    box(g,w-0.1,0.02,d-0.1, 0,0.25,0,'#8E9190');
+    cyl(g,0.012,0.012,0.55, w/2-0.15,0.92,-d/2+0.1,DARK,{},8);
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.09,0.015,8,20), M('#DADAD5'));
+    ring.position.set(w/2-0.25,1.45,-d/2+0.15); ring.rotation.x = PI/2.6; g.add(ring);
+    box(g,0.5,0.05,0.6, -0.2,0.92,0.02,'#2B3448',{r:.95});
+  },
+  steamer(x,z){ box(model,0.3,0.25,0.3,x,0,z,WHITE); cyl(model,0.012,0.012,1.4,x,0.25,z,METAL,{m:.6},8); box(model,0.16,0.26,0.06,x,1.6,z,WHITE); },
+  toilet(x,z,rot){ const g=grp(x,z,rot); box(g,0.38,0.4,0.5,0,0,0.05,WHITE,{r:.3}); box(g,0.38,0.36,0.18,0,0.4,-0.17,WHITE,{r:.3}); },
+  sink(x,z,rot){ const g=grp(x,z,rot); cyl(g,0.07,0.09,0.72,0,0,0,WHITE,{r:.3}); box(g,0.52,0.14,0.42,0,0.72,0,WHITE,{r:.3}); box(g,0.5,0.6,0.02,0,1.05,-0.19,'#C6D6DA',{m:.7,r:.08}); },
+  dehum(x,z){ box(model,0.36,0.56,0.26,x,0,z,WHITE); box(model,0.3,0.12,0.01,x,0.38,z+0.131,'#555'); },
+  board(x,z,w,d){
+    // tablero anclado a la pared (z = cara de la pared): bisagra a 90 cm; se recoge hacia arriba con la manta contra la pared
+    const up = boardPos==='up', a = up ? -PI/2 : boardPos==='flat' ? 0 : BOARD_TILT;
+    const g = grp(x, z-0.05, PI), H = 0.85, t = 0.019, W0 = 0.05, legD = 1.1, legX = w/2-0.22, uy = -t-0.04, rz = 2.2, camD = 1.25;
+    box(g,w,0.12,0.045, 0,H-0.12,0.0225,OAK);
+    box(g,w,0.012,0.012, 0,H-0.006,W0,METAL,{m:.7,r:.35});
+    const pv = new THREE.Group(); pv.position.set(0,H,W0); pv.rotation.x = a; g.add(pv);
+    box(pv,w,t,d, 0,-t,d/2,'#C8A877',{r:.9});
+    box(pv,w-0.01,0.012,d-0.01, 0,0,d/2,'#E9E1D2',{r:1});
+    box(pv,w,0.07,0.008, 0,-0.06,d+0.004,'#E9E1D2',{r:1});
+    [-0.7,0,0.7].forEach(sx=>box(pv,0.05,0.05,0.03, sx,-0.04,d+0.014,'#222'));
+    box(pv,w-0.1,0.04,0.045, 0,uy,legD,OAK);
+    [-1,1].forEach(s=>box(pv,0.045,0.04,d-0.1, s*(w/2-0.1),uy,d/2,OAK));
+    if (!up){
+      const c = new THREE.Group(); c.position.y = 0.012; pv.add(c);
+      // la pieza más larga del Maestro: 132 cm de largo, 67 de pecho, 65 de manga
+      box(c,0.67,0.018,1.32, 0,0,0.85,'#C9A46E',{r:.95});
+      [-1,1].forEach(s=>{ const m = box(c,0.17,0.016,0.65, s*0.48,0,0.52,'#C9A46E',{r:.95}); m.rotation.y = s*0.7; });
+      box(c,0.69,0.02,0.05, 0,0.003,0.64,'#B88A4E',{r:.95});
+      box(c,0.3,0.022,0.1, 0,0.003,0.24,'#B88A4E',{r:.95});
+    }
+    [-legX,legX].forEach(sx=>{
+      if (up){ box(pv,0.04,0.03,0.62, sx,uy-0.03,legD-0.33,METAL,{m:.6,r:.4}); box(g,0.12,0.03,0.08, sx,H+d-0.08,W0+0.03,'#333'); return; }
+      const y = H + uy*Math.cos(a) - legD*Math.sin(a), zl = W0 + uy*Math.sin(a) + legD*Math.cos(a);
+      box(g,0.05,y*0.55,0.05, sx,0,zl,METAL,{m:.6,r:.4});
+      box(g,0.035,y,0.035, sx,0,zl,'#B7B9B8',{m:.6,r:.35});
+      box(g,0.16,0.012,0.1, sx,0,zl,'#333');
+    });
+    // luces LED con pinza en los lados: van con el tablero; al recogerlo el brazo se dobla junto al canto
+    [-1,1].forEach(s=>{
+      const e = w/2, m = d/2;
+      box(pv,0.05,0.07,0.06, s*(e+0.012),-0.05,m,'#222');
+      const pts = (up ? [[e+0.03,0,m],[e+0.06,-0.01,m+0.15],[e+0.06,-0.01,m+0.32]] : [[e+0.03,0,m],[e+0.12,0.22,m],[e+0.08,0.46,m],[e-0.02,0.56,m]]).map(p=>new THREE.Vector3(s*p[0],p[1],p[2]));
+      const curve = new THREE.CatmullRomCurve3(pts);
+      const arm = new THREE.Mesh(new THREE.TubeGeometry(curve,20,0.008,8,false), M(DARK,{r:.5})); arm.castShadow = true; pv.add(arm);
+      const pg = new THREE.Group(); pg.position.copy(pts[pts.length-1]); pg.rotation.z = up ? 0 : -s*0.6; pv.add(pg);
+      box(pg,0.12,0.025,0.2, 0,-0.0125,0,'#1a1a1a');
+      box(pg,0.1,0.004,0.18, 0,-0.029,0,'#FFF4DC', up ? {} : {e:'#FFF4DC'});
+    });
+    if (V[cur].tags){
+      const ly = up ? H+d/2+0.28 : H+0.62*Math.cos(a)-d/2*Math.sin(a), lz = up ? 0.1 : W0+0.62*Math.sin(a)+d/2*Math.cos(a);
+      addLabel('tag', 'Luz LED con pinza y brazo flexible', x+w/2+0.1, ly, z-0.05-lz);
+    }
+    // trípode con brazo: cámara perpendicular al centro del tablero
+    const cz = up ? rz : W0 + d/2*Math.cos(a) + camD*Math.sin(a), cy = up ? 1.4 : H - d/2*Math.sin(a) + camD*Math.cos(a);
+    [0,2.1,4.2].forEach(q=>{ const l = cyl(g,0.012,0.012,1.2, Math.sin(q)*0.16,0,rz+Math.cos(q)*0.16,DARK,{},6); l.rotation.x = Math.cos(q)*0.12; l.rotation.z = -Math.sin(q)*0.12; });
+    cyl(g,0.013,0.013,cy+(up?0:0.09), 0,0,rz,DARK,{},8);
+    if (!up) box(g,0.03,0.03,rz-cz+0.03, 0,cy+0.08,(rz+cz)/2,DARK);
+    const cam = new THREE.Group(); cam.position.set(0,cy,cz); cam.rotation.x = up ? PI/2 : a; g.add(cam);
+    box(cam,0.15,0.08,0.09, 0,0,0,'#111',{r:.4});
+    cyl(cam,0.035,0.035,0.07, 0,-0.07,0,'#111',{r:.3},12);
+    if (V[cur].tags){
+      const mid = up ? [H+d*0.6, 0.12] : [H-d/2*Math.sin(a)+0.3, d/2*Math.cos(a)];
+      addLabel('tag', up ? 'Tablero recogido, manta hacia la pared' : boardPos==='flat' ? 'Tablero plano a 85 cm' : 'Tablero inclinado 20°, borde bajo a 27 cm', x, mid[0], z-0.05-mid[1]);
+      addLabel('tag', 'Listón anclado + bisagra a 85 cm', x-w/2+0.25, H+0.14, z-0.08);
+      addLabel('tag', up ? 'Trípode del tablero' : 'Cámara perpendicular a 1,25 m', x, cy+0.26, z-0.05-cz);
+      if (!up) addLabel('tag', 'Tu pieza más larga: 132 cm', x, H-1.25*Math.sin(a)+0.12, z-0.05-W0-1.25*Math.cos(a));
+      if (!up) addLabel('tag', 'Patas plegables de altura regulable', x-legX, 0.3, z-0.05-W0-legD*Math.cos(a));
+    }
+  },
+  bench(x,z,w,d){ box(model,w,0.42,d,x,0,z,OAK); },
+  tablon(x,z,rot){ const g = grp(x,z,rot); box(g,1.3,0.8,0.02, 0,1.25,0.01,'#F4F2EC',{r:.6}); [['#E8C547',-0.4,1.75],['#9CC3A6',-0.1,1.8],['#E8A0A0',0.25,1.7],['#E8C547',0.45,1.45],['#9CC3A6',-0.35,1.4]].forEach(([c,a,y])=>box(g,0.14,0.14,0.005, a,y,0.025,c)); },
+  llegadas(x,z){ const g = grp(x,z,0); [0.05,0.5].forEach(y=>box(g,0.8,0.02,0.4, 0,y,0,'#8E9190')); [-0.38,0.38].forEach(a=>box(g,0.03,0.95,0.4, a,0,0,'#6E7270')); box(g,0.35,0.25,0.3, -0.18,0.07,0,KRAFT); box(g,0.3,0.12,0.28, 0.2,0.07,0,'#B9BDB9'); box(g,0.4,0.3,0.32, 0,0.52,0,KRAFT); },
+  extintor(x,z){ cyl(model,0.075,0.075,0.5,x,0,z,'#B3261E',{r:.4}); cyl(model,0.03,0.03,0.08,x,0.5,z,'#222'); },
+  wallbox(x,y,z,w,h,d,c,glow){ box(model,w,h,d,x,y,z,c, glow?{e:c}:{}); },
+  camsec(x,z){ box(model,0.1,0.08,0.14,x,2.72,z,'#F2F2F0'); cyl(model,0.03,0.03,0.04,x,2.66,z,'#111'); },
+  shipdesk(x,z,rot){ const g = grp(x,z,rot); box(g,0.9,0.04,0.5, 0,0.85,0,'#D8C7A6'); [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(([a,b])=>box(g,0.04,0.85,0.04, a*0.4,0,b*0.2,DARK)); box(g,0.2,0.15,0.22, -0.25,0.89,-0.05,'#1d1f1e'); box(g,0.3,0.04,0.3, 0.2,0.89,0,'#B9BDB9',{m:.4}); cyl(g,0.05,0.05,0.05, -0.05,0.89,0.15,'#C9A46E'); },
+  crates(x,z){ ['#E8B923','#2B4C9B','#C8102E'].forEach((c,i)=>box(model,0.38,0.3,0.5, x+(i-1)*0.42,0,z+0.05,c,{r:.7})); },
+  tape(x,z){ [0,PI/2].forEach(a=>{ const m = box(model,0.34,0.003,0.04,x,0.005,z,'#E5B53A',{noShadow:true}); m.rotation.y = a; }); },
+  ruler(x,z,rot){ const g = grp(x,z,rot); box(g,0.14,1.54,0.01, 0,0.12,0,'#1F2A26'); const m = new THREE.Mesh(new THREE.PlaneGeometry(0.11,1.5), new THREE.MeshBasicMaterial({map: rulerTexture()})); m.position.set(0,0.89,0.007); g.add(m); },
+  prepcart(x,z){ const g = grp(x,z,0); [0.3,0.8].forEach(y=>box(g,0.5,0.02,0.4, 0,y,0,'#8E9190')); [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(([a,b])=>{ box(g,0.02,0.8,0.02, a*0.24,0.04,b*0.19,'#6E7270'); cyl(g,0.03,0.03,0.04, a*0.22,0,b*0.17,'#222',{},8); }); cyl(g,0.04,0.05,0.22, -0.15,0.82,0,WHITE); box(g,0.18,0.05,0.07, 0.05,0.82,-0.08,OAK); ['#C9A46E','#2B3448','#B3261E','#E8C547'].forEach((c,i)=>box(g,0.05,0.005,0.05, 0.1+(i%2)*0.06,0.82,0.06+Math.floor(i/2)*0.06,c)); box(g,0.25,0.12,0.2, 0,0.32,0,KRAFT); },
+  organizer(x,z,rot){ const g = grp(x,z,rot); box(g,0.6,1.1,0.4, 0,0,0,'#C9CBCB',{m:.2}); const cols = ['#5A3A22','#2A1E16','#8A5A35','#C9A46E','#1F1F1F','#7A4430']; for (let r=0;r<8;r++) for (let c=0;c<4;c++) box(g,0.12,0.1,0.01, -0.21+c*0.14,0.08+r*0.125,0.205, cols[(r+c)%cols.length],{noShadow:true}); },
+  sewing(x,z,rot){
+    const g = grp(x,z,rot);
+    box(g,1.2,0.04,0.55, 0,0.74,0,'#E9E4DA',{r:.5});
+    [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(([a,b])=>box(g,0.04,0.74,0.04, a*0.55,0,b*0.24,DARK));
+    box(g,0.28,0.2,0.22, 0.35,0.45,-0.05,'#2B2B2B');
+    box(g,0.42,0.06,0.18, -0.05,0.78,-0.05,'#DADAD5');
+    box(g,0.09,0.3,0.09, 0.15,0.78,-0.05,'#DADAD5');
+    box(g,0.5,0.09,0.12, -0.05,1.05,-0.05,'#DADAD5');
+    box(g,0.1,0.22,0.12, -0.28,0.85,-0.05,'#DADAD5');
+    const hw = cyl(g,0.07,0.07,0.04, 0,0,0,'#555',{},16); hw.rotation.z = PI/2; hw.position.set(0.24,1.05,-0.05);
+    cyl(g,0.008,0.008,0.4, -0.45,0.78,-0.2,DARK,{},6);
+    box(g,0.1,0.05,0.08, -0.4,1.15,-0.12,'#F2F2F0',{e:'#FFF7E6'});
+    cyl(g,0.2,0.2,0.05, 0,0.5,0.5,'#2F3A35'); cyl(g,0.03,0.03,0.5, 0,0,0.5,DARK,{},8);
+  }
+};
+function rulerTexture(){
+  const c = document.createElement('canvas'); c.width = 64; c.height = 1024;
+  const x = c.getContext('2d'); x.fillStyle = '#FBF8F0'; x.fillRect(0,0,64,1024);
+  x.fillStyle = '#1B2420'; x.font = '500 13px "IBM Plex Mono", monospace'; x.textBaseline = 'middle';
+  for (let cm=0; cm<=150; cm++){ const y = 4 + cm*(1016/150); const L = cm%10===0 ? 26 : cm%5===0 ? 16 : 9; x.fillRect(0, y-0.5, L, cm%10===0 ? 2 : 1); if (cm%10===0 && cm>0) x.fillText(String(cm), 30, y); }
+  return new THREE.CanvasTexture(c);
+}
+
+/* ---------- Construcción ---------- */
+let walls = [], floors = [], labelItems = [], flowGroup = null;
+const WALL = '#ECE8E0', H = 3.0, T = 0.15;
+
+function wallSeg(x0,z0,x1,z1,h,t,color,side,opts){
+  const len = Math.hypot(x1-x0, z1-z0);
+  const mat = opts && opts.glass
+    ? new THREE.MeshStandardMaterial({color:'#A9C6CC', transparent:true, opacity:0.22, roughness:0.05, metalness:0.1, depthWrite:false})
+    : new THREE.MeshStandardMaterial({color, roughness:0.92});
+  const m = new THREE.Mesh(new THREE.BoxGeometry(len,1,t), mat);
+  m.position.set((x0+x1)/2, h/2, (z0+z1)/2);
+  m.scale.y = h;
+  m.rotation.y = -Math.atan2(z1-z0, x1-x0);
+  m.receiveShadow = true;
+  m.userData = {side, h, baseOpacity: mat.opacity, glass: !!(opts && opts.glass), fascia: !!(opts && opts.fascia)};
+  model.add(m); walls.push(m); return m;
+}
+
+function signTexture(w){
+  const c = document.createElement('canvas'); c.width = 2048; c.height = Math.round(2048*0.4/w);
+  const x = c.getContext('2d');
+  x.fillStyle = GREEN; x.fillRect(0,0,c.width,c.height);
+  x.fillStyle = '#C9A660'; x.textAlign = 'center'; x.textBaseline = 'middle';
+  x.font = 'italic 600 ' + Math.round(c.height*0.52) + 'px "Bodoni Moda", Didot, Georgia, serif';
+  x.fillText('LauxeN', c.width/2, c.height*0.42);
+  x.font = '500 ' + Math.round(c.height*0.14) + 'px "IBM Plex Mono", monospace';
+  x.fillText('T R E N C H   C O A T   A R C H I V E', c.width/2, c.height*0.82);
+  const t = new THREE.CanvasTexture(c); t.anisotropy = 4; return t;
+}
+
+function build(){
+  root.remove(model); model = new THREE.Group(); root.add(model);
+  walls = []; floors = []; labelItems = []; labelsEl.innerHTML = ''; seed = 7;
+  const v = V[cur], W = v.W, D = v.D;
+  model.position.set(-W/2, 0, -D/2);
+
+  // forjado y acera
+  box(model, W+2*T, 0.1, D+2*T, W/2, -0.1, D/2, '#8a8378', {noShadow:true});
+  box(model, W+6, 0.04, 2.6, W/2, -0.06, -1.45, '#CBC7BE', {noShadow:true});
+
+  // suelos por zona
+  v.zones.forEach(([id,x0,z0,x1,z1])=>{
+    const info = ZI[id];
+    const mat = new THREE.MeshStandardMaterial({color: zonesOn ? info.c : info.f, roughness:0.9});
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(x1-x0, z1-z0), mat);
+    m.rotation.x = -PI/2; m.position.set((x0+x1)/2, 0.004, (z0+z1)/2); m.receiveShadow = true;
+    m.userData = {id}; model.add(m); floors.push(m);
+    const area = (x1-x0)*(z1-z0);
+    addLabel('zone', `<b>${info.n}</b><span class="mono">${fmt(area)} m²</span>`, (x0+x1)/2, 0.05, (z0+z1)/2, id);
+  });
+
+  // muros exteriores
+  wallSeg(-T/2, -T, -T/2, D+T, H, T, WALL, 'left');
+  wallSeg(W+T/2, -T, W+T/2, D+T, H, T, WALL, 'right');
+  wallSeg(-T, D+T/2, W+T, D+T/2, H, T, WALL, 'back');
+  // fachada: vidrio + puerta + rótulo
+  const [d0,d1] = v.door;
+  wallSeg(0, -T/2, d0, -T/2, 2.6, 0.03, null, 'front', {glass:true});
+  wallSeg(d1, -T/2, W, -T/2, 2.6, 0.03, null, 'front', {glass:true});
+  const mull = [0, d0, d1, W];
+  for (let px = 1.5; px < W; px += 1.5) if (px < d0-0.3 || px > d1+0.3) mull.push(px);
+  mull.forEach(px=>{ const mm = box(model,0.05,2.6,0.07, px,0,-T/2, '#1F2A26'); mm.userData.mullion = true; walls.push(mm); mm.userData.h = 2.6; });
+  const fas = wallSeg(-T, -T/2, W+T, -T/2, 0.4, T, GREEN, 'front', {fascia:true});
+  fas.position.y = 2.8;
+  const sign = new THREE.Mesh(new THREE.PlaneGeometry(W+2*T, 0.4), new THREE.MeshBasicMaterial({map: signTexture(W+2*T)}));
+  sign.rotation.y = PI; sign.position.set(W/2, 2.8, -T-0.002); sign.userData = {fascia:true}; model.add(sign); walls.push(sign);
+  B.rug((d0+d1)/2, 0.5, d1-d0, 0.6, '#3A3631');
+
+  // tabiques, vidrios interiores, cortinas y paneles verdes
+  v.parts.forEach(([x0,z0,x1,z1])=>wallSeg(x0,z0,x1,z1,2.6,0.1,WALL,null));
+  (v.glass||[]).forEach(([x0,z0,x1,z1])=>wallSeg(x0,z0,x1,z1,2.6,0.03,null,null,{glass:true}));
+  (v.curtains||[]).forEach(([x0,z0,x1,z1])=>{ const c = wallSeg(x0,z0,x1,z1,2.3,0.04,GREEN,null); c.material.roughness = 1; c.userData.curtain = true; });
+  (v.accents||[]).forEach(([x0,z0,x1,z1,side])=>{ const a = wallSeg(x0,z0,x1,z1,2.6,0.02,GREEN,side); a.userData.accent = true; });
+
+  // muebles
+  v.items.forEach(it=>{ const fn = B[it[0]]; if (fn) fn.apply(null, it.slice(1)); });
+
+  // cotas
+  addLabel('dim', fmt(W)+' m', W/2, 0.02, -1.0);
+  addLabel('dim', fmt(D)+' m', W+0.75, 0.02, D/2);
+
+  // recorrido
+  flowGroup = new THREE.Group(); model.add(flowGroup);
+  const r = v.route;
+  for (let i=0;i<r.length-1;i++){
+    const [ax,az] = r[i], [bx,bz] = r[i+1];
+    const len = Math.hypot(bx-ax, bz-az); if (len < 0.01) continue;
+    const s = new THREE.Mesh(new THREE.BoxGeometry(len, 0.012, 0.07), M('#B08A3E',{e:'#6b5020'}));
+    s.position.set((ax+bx)/2, 0.03 + (i%2)*0.002, (az+bz)/2);
+    s.rotation.y = -Math.atan2(bz-az, bx-ax);
+    flowGroup.add(s);
+  }
+  r.forEach(p=>{ if (p[2]) addLabel('step', String(p[2]), p[0], 0.1, p[1], null, STEPS[p[2]-1]); });
+  (v.tags||[]).forEach(([x,y,z,t])=>addLabel('tag', t, x, y, z));
+  flowGroup.visible = flowOn;
+
+  applyLowWalls(); applySelection();
+  renderLegend(); renderTable();
+  dirty = true;
+}
+
+function addLabel(kind, html, x, y, z, id, title){
+  const el = document.createElement('div');
+  el.className = 'lbl' + (kind==='dim' ? ' dim' : kind==='step' ? ' step' : kind==='tag' ? ' tag' : '');
+  el.innerHTML = html; if (title) el.title = title;
+  labelsEl.appendChild(el);
+  labelItems.push({el, kind, pos:new THREE.Vector3(x,y,z), id});
+}
+
+function applyLowWalls(){
+  walls.forEach(m=>{
+    const u = m.userData;
+    if (u.fascia){ m.visible = !lowWalls; return; }
+    const h = lowWalls ? Math.min(u.h, 1.1) : u.h;
+    if (u.mullion){ m.scale.y = h/u.h; m.position.y = h/2; return; }
+    m.scale.y = h; m.position.y = h/2;
+  });
+  dirty = true;
+}
+
+function applySelection(){
+  floors.forEach(f=>{
+    const info = ZI[f.userData.id];
+    f.material.color.set(zonesOn ? info.c : info.f);
+    const on = selected === f.userData.id;
+    f.material.emissive = new THREE.Color(on ? info.c : '#000000');
+    f.material.emissiveIntensity = on ? 0.55 : 0;
+  });
+  document.querySelectorAll('.zone').forEach(b=>b.setAttribute('aria-expanded', b.dataset.id===selected ? 'true' : 'false'));
+  dirty = true;
+}
+
+/* ---------- Cámara ---------- */
+const view = {theta:PI-0.6, phi:0.9, r:16, tx:0, ty:0.6, tz:0.3};
+let goal = null;
+function fitR(){
+  const v = V[cur], a = camera.aspect || 1.5, span = Math.max(v.W, v.D);
+  return span * (a < 0.8 ? 3.05 : a < 1.2 ? 1.85 : 1.45);
+}
+function preset(mode){
+  const v = V[cur];
+  if (mode==='plan') return {theta:PI, phi:0.02, r:fitR()*1.08, tx:0, ty:0, tz:0};
+  if (mode==='street') return {theta:PI-0.14, phi:1.34, r:v.D*0.9+2.5, tx:0, ty:1.3, tz:0};
+  if (mode==='board'){ const b = v.items.find(i=>i[0]==='board'); return {theta:PI-0.4, phi:1.2, r:3.9, tx:b[1]-v.W/2, ty:0.75, tz:b[2]-0.8-v.D/2}; }
+  return {theta:PI-0.6, phi:0.9, r:fitR(), tx:0, ty:0.4, tz:0.3};
+}
+function setCam(mode, instant){
+  camMode = mode;
+  document.querySelectorAll('[data-cam]').forEach(b=>b.setAttribute('aria-pressed', b.dataset.cam===mode ? 'true' : 'false'));
+  const p = preset(mode);
+  if (instant || reduced){ Object.assign(view, p); goal = null; applyCam(); }
+  else goal = p;
+  dirty = true;
+}
+function applyCam(){
+  const s = Math.sin(view.phi);
+  camera.position.set(view.tx + view.r*s*Math.sin(view.theta), view.ty + view.r*Math.cos(view.phi), view.tz + view.r*s*Math.cos(view.theta));
+  camera.lookAt(view.tx, view.ty, view.tz);
+  camera.updateMatrixWorld();
+  // muros exteriores que tapan la vista se vuelven transparentes
+  const v = V[cur];
+  const lx = camera.position.x + v.W/2, lz = camera.position.z + v.D/2;
+  walls.forEach(m=>{
+    const u = m.userData; if (!u.side || u.side==='front' || !m.material) return;
+    const hide = (u.side==='left' && lx < 0) || (u.side==='right' && lx > v.W) || (u.side==='back' && lz > v.D);
+    m.material.transparent = hide || u.glass;
+    m.material.opacity = hide ? 0.12 : (u.glass ? u.baseOpacity : 1);
+    m.material.depthWrite = !hide && !u.glass;
+  });
+}
+function angDiff(a,b){ let d = b - a; while (d > PI) d -= 2*PI; while (d < -PI) d += 2*PI; return d; }
+
+/* interacción */
+const ptrs = new Map(); let dragMode = 'rot', moved = 0;
+canvas.addEventListener('contextmenu', e=>e.preventDefault());
+canvas.addEventListener('pointerdown', e=>{
+  canvas.setPointerCapture(e.pointerId);
+  ptrs.set(e.pointerId, {x:e.clientX, y:e.clientY});
+  dragMode = (e.button===2 || e.shiftKey) ? 'pan' : 'rot'; moved = 0; goal = null;
+});
+canvas.addEventListener('pointermove', e=>{
+  if (!ptrs.has(e.pointerId)) return;
+  const prev = ptrs.get(e.pointerId);
+  if (ptrs.size === 1){
+    const dx = e.clientX - prev.x, dy = e.clientY - prev.y; moved += Math.abs(dx)+Math.abs(dy);
+    if (dragMode==='rot'){ view.theta -= dx*0.008; view.phi = Math.min(1.48, Math.max(0.02, view.phi - dy*0.008)); }
+    else pan(dx,dy);
+    ptrs.set(e.pointerId, {x:e.clientX, y:e.clientY});
+  } else if (ptrs.size === 2){
+    const ids = [...ptrs.keys()], other = ptrs.get(ids.find(i=>i!==e.pointerId));
+    const d0 = Math.hypot(prev.x-other.x, prev.y-other.y), d1 = Math.hypot(e.clientX-other.x, e.clientY-other.y);
+    if (d0 > 0 && d1 > 0) view.r = Math.min(45, Math.max(3, view.r * d0/d1));
+    pan((e.clientX-prev.x)/2, (e.clientY-prev.y)/2);
+    moved += 10;
+    ptrs.set(e.pointerId, {x:e.clientX, y:e.clientY});
+  }
+  applyCam(); dirty = true;
+});
+function endPtr(e){
+  if (ptrs.size===1 && moved < 5 && e.type==='pointerup') pick(e);
+  ptrs.delete(e.pointerId);
+}
+canvas.addEventListener('pointerup', endPtr);
+canvas.addEventListener('pointercancel', endPtr);
+canvas.addEventListener('wheel', e=>{ e.preventDefault(); goal = null; view.r = Math.min(45, Math.max(3, view.r*Math.exp(e.deltaY*0.0012))); applyCam(); dirty = true; }, {passive:false});
+function pan(dx,dy){
+  const s = view.r*0.0017, fx = -Math.sin(view.theta), fz = -Math.cos(view.theta), rx = -fz, rz = fx;
+  const v = V[cur], lim = Math.max(v.W, v.D)/2 + 2;
+  view.tx = Math.max(-lim, Math.min(lim, view.tx - dx*s*rx + dy*s*fx));
+  view.tz = Math.max(-lim, Math.min(lim, view.tz - dx*s*rz + dy*s*fz));
+}
+const ray = new THREE.Raycaster(), mouse = new THREE.Vector2();
+function pick(e){
+  const r = canvas.getBoundingClientRect();
+  mouse.set(((e.clientX-r.left)/r.width)*2-1, -((e.clientY-r.top)/r.height)*2+1);
+  ray.setFromCamera(mouse, camera);
+  const hit = ray.intersectObjects(floors)[0];
+  selected = hit ? (selected===hit.object.userData.id ? null : hit.object.userData.id) : null;
+  applySelection();
+}
+
+/* bucle */
+const tmp = new THREE.Vector3();
+function loop(){
+  requestAnimationFrame(loop);
+  if (!renderer) return;
+  if (goal){
+    const k = 0.14;
+    view.theta += angDiff(view.theta, goal.theta)*k;
+    ['phi','r','tx','ty','tz'].forEach(p=>view[p] += (goal[p]-view[p])*k);
+    if (Math.abs(angDiff(view.theta,goal.theta)) < 0.002 && Math.abs(goal.r-view.r) < 0.01 && Math.abs(goal.phi-view.phi) < 0.002){ Object.assign(view, goal); goal = null; }
+    applyCam(); dirty = true;
+  }
+  if (!dirty) return;
+  dirty = false;
+  renderer.render(scene, camera);
+  const w = viewer.clientWidth, h = viewer.clientHeight, v = V[cur];
+  labelItems.forEach(l=>{
+    if ((l.kind==='step' && !flowOn) || (l.kind==='tag' && !tagsOn)){ l.el.style.display='none'; return; }
+    if (camMode==='board'){ const bd = V[cur].items.find(i=>i[0]==='board'); if (l.kind!=='tag' || l.pos.z > bd[2] || Math.hypot(l.pos.x-bd[1], l.pos.z-(bd[2]-1)) > 1.6){ l.el.style.display='none'; return; } }
+    tmp.set(l.pos.x - v.W/2, l.pos.y, l.pos.z - v.D/2).project(camera);
+    if (tmp.z > 1 || tmp.z < -1){ l.el.style.display='none'; return; }
+    l.el.style.display = '';
+    l.el.style.transform = `translate(${(tmp.x*0.5+0.5)*w}px, ${(-tmp.y*0.5+0.5)*h}px) translate(-50%,-50%)`;
+  });
+}
+function resize(){
+  if (!renderer) return;
+  const w = viewer.clientWidth, h = viewer.clientHeight;
+  renderer.setSize(w, h, false); camera.aspect = w/h; camera.updateProjectionMatrix();
+  if (!goal) { const p = preset(camMode); view.r = p.r; }
+  applyCam(); dirty = true;
+}
+new ResizeObserver(resize).observe(viewer);
+
+/* tema */
+function readTokens(){
+  const cs = getComputedStyle(document.documentElement);
+  const st = cs.getPropertyValue('--stage').trim(), gr = cs.getPropertyValue('--ground').trim();
+  if (st) scene.background = new THREE.Color(st);
+  if (gr && groundMat) groundMat.color.set(gr);
+  dirty = true;
+}
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', readTokens);
+new MutationObserver(readTokens).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme']});
+
+/* ---------- Leyenda ---------- */
+function renderLegend(){
+  const v = V[cur];
+  document.getElementById('lgTitle').textContent = cur + ' m²';
+  document.getElementById('lgDims').textContent = fmt(v.W) + ' × ' + fmt(v.D) + ' m';
+  document.getElementById('lgFoot').textContent = v.foot;
+  const list = document.getElementById('zoneList'); list.innerHTML = '';
+  v.zones.forEach(([id,x0,z0,x1,z1])=>{
+    const info = ZI[id], b = document.createElement('button');
+    b.type = 'button'; b.className = 'zone'; b.dataset.id = id; b.setAttribute('aria-expanded', id===selected ? 'true':'false');
+    b.innerHTML = `<span class="sw" style="background:${info.c}"></span><span class="nm">${info.n}</span><span class="m2">${fmt((x1-x0)*(z1-z0))} m²</span><span class="ds">${info.d}<br><span class="mono">${fmt(x1-x0)} × ${fmt(z1-z0)} m</span></span>`;
+    b.addEventListener('click', ()=>{
+      selected = selected===id ? null : id; applySelection();
+      if (selected && !reduced){ const cx=(x0+x1)/2 - v.W/2, cz=(z0+z1)/2 - v.D/2; goal = {theta:view.theta, phi:Math.min(view.phi,1.0), r:Math.max(6, fitR()*0.6), tx:cx, ty:0.3, tz:cz}; }
+    });
+    list.appendChild(b);
+  });
+  document.getElementById('factCap').textContent = V[70].burrosStock * perBurro();
+}
+
+/* ---------- Comparativa ---------- */
+function perBurro(){ const bar = +document.getElementById('cBar').value || 150, cm = +document.getElementById('cCm').value || 7.5; return Math.max(1, Math.floor(bar/cm)); }
+function zoneArea(v,id){ const z = v.zones.find(q=>q[0]===id); return z ? (z[3]-z[1])*(z[4]-z[2]) : 0; }
+function renderTable(){
+  const rent = +document.getElementById('rent').value || 0, pb = perBurro(), have = +document.getElementById('cHave').value || 0;
+  const rows = [
+    ['Medidas', v=>fmt(v.W)+' × '+fmt(v.D)+' m'],
+    ['Gabardinas en el almacén', v=>fmt(v.burrosStock*pb,0)],
+    ['Burros en total (stock + tintorería + expositor)', v=>v.burrosTotal],
+    ['Burros que te faltan', v=>Math.max(0, v.burrosTotal-have)],
+    ['Estudio', v=>fmt(zoneArea(v,'estudio'))+' m² · cámara a '+v.camDist],
+    ['Embalaje y grabación', v=>fmt(zoneArea(v,'embalaje'))+' m²'],
+    ['Clientes en el local', v=>v.clients],
+    ['Alquiler al mes', (v,k)=>fmt(k*rent,0)+' €'],
+    ['Diferencia al año frente a 60 m²', (v,k)=>k===60 ? '—' : '+'+fmt((k-60)*rent*12,0)+' €']
+  ];
+  let h = '<thead><tr><th></th>' + ORDER.map(k=>`<th class="n${k===70?' rec':''}">${k} m²${k===70?'<span class="badge">óptimo</span>':''}</th>`).join('') + '</tr></thead><tbody>';
+  rows.forEach(([name,f])=>{ h += `<tr><td>${name}</td>` + ORDER.map(k=>`<td class="n${k===70?' rec':''}">${f(V[k],k)}</td>`).join('') + '</tr>'; });
+  document.getElementById('cmp').innerHTML = h + '</tbody>';
+}
+
+/* ---------- Calculador de burros ---------- */
+function calc(){
+  const pz = +document.getElementById('cPz').value || 0, have = +document.getElementById('cHave').value || 0, mar = +document.getElementById('cMar').value || 0;
+  const pb = perBurro(), min = Math.ceil(pz/pb), withM = Math.ceil(pz*(1+mar/100)/pb), kg = pb*1.8;
+  const bar = (+document.getElementById('cBar').value || 150)/100;
+  document.getElementById('rPer').textContent = pb;
+  document.getElementById('rMin').textContent = min;
+  document.getElementById('rWith').textContent = withM;
+  document.getElementById('rBuy').textContent = Math.max(0, withM - have);
+  const kgEl = document.getElementById('rKg'); kgEl.textContent = fmt(kg,0) + ' kg de 100'; kgEl.classList.toggle('warn', kg > 100);
+  document.getElementById('rLen').textContent = fmt(Math.ceil(withM/2)*(bar+0.1)) + ' m';
+  renderTable();
+  document.getElementById('factCap').textContent = V[70].burrosStock * pb;
+}
+['cPz','cBar','cCm','cHave','cMar','rent'].forEach(id=>document.getElementById(id).addEventListener('input', calc));
+
+/* ---------- Controles ---------- */
+document.querySelectorAll('[data-v]').forEach(b=>b.addEventListener('click', ()=>{
+  cur = +b.dataset.v; selected = null;
+  document.querySelectorAll('[data-v]').forEach(x=>x.setAttribute('aria-pressed', x===b ? 'true':'false'));
+  try { localStorage.setItem('lauxen-local-v', String(cur)); } catch(e){}
+  build(); setCam(camMode, false);
+}));
+document.querySelectorAll('[data-cam]').forEach(b=>b.addEventListener('click', ()=>setCam(b.dataset.cam)));
+document.querySelectorAll('[data-bd]').forEach(b=>b.addEventListener('click', ()=>{
+  boardPos = b.dataset.bd;
+  document.querySelectorAll('[data-bd]').forEach(x=>x.setAttribute('aria-pressed', x===b ? 'true':'false'));
+  build(); setCam(camMode==='3d' ? 'board' : camMode, false);
+}));
+function toggle(id, fn){ const b = document.getElementById(id); b.addEventListener('click', ()=>{ const on = b.getAttribute('aria-pressed')!=='true'; b.setAttribute('aria-pressed', on?'true':'false'); fn(on); }); }
+toggle('tZones', on=>{ zonesOn = on; applySelection(); });
+toggle('tFlow', on=>{ flowOn = on; if (flowGroup) flowGroup.visible = on; dirty = true; });
+toggle('tLow', on=>{ lowWalls = on; applyLowWalls(); });
+toggle('tTags', on=>{ tagsOn = on; dirty = true; });
+
+/* ---------- Equipamiento ---------- */
+const EQ = [
+ ['Estudio',['Manta fotográfica de 2,7 m con soporte','Maniquí, siempre el mismo, con hombros a 1,45 m o más','Perchero de foto con barra a 1,60 m o más y percha de madera','Tablero de aglomerado de 19 mm, 2,2 × 1,7 m, con bastidor de listones','Bisagra de piano de 2,2 m y listón anclado a la pared','Pinzas o imanes para la manta','2 softbox de 5.000–5.600 K, CRI 95 o más','2 trípodes fijos','Disparador remoto','Cinta para las marcas del suelo','Regla de longitud total en la pared','Carta de color','Hoja de ajustes de cámara y luz','Carro: quitapelusas, cepillo y vaporera de mano','2 patas telescópicas plegables de 40 a 80 cm','2 cerrojos para dejar el tablero recogido','Brazo horizontal para el trípode del tablero','2 luces LED con pinza y brazo flexible, 5.000–5.600 K, CRI 95 o más']],
+ ['Embalaje y grabación',['Mesa de 180 × 90 cm a 90 cm de alto','Pórtico o brazo cenital con soporte','Cámara lateral en trípode','2 paneles LED','Micro pequeño','Cajas de unos 50 × 40 × 12 cm','Papel de seda','Pegatina o sello de cierre','Juego de hebillas de recambio en bolsita','Tarjeta «El equipo de LauxeN 🌹»','Fundas de tela','Impresora térmica de etiquetas','Báscula','Cinta, cúter y film','Bandejas InPost, GLS y DHL']],
+ ['Almacén',['Burros de stock (ver calculador)','Cartel por modelo en cada burro','Unas 150 perchas de madera iguales','Fundas transpirables con etiqueta LX','Etiquetadora','Cortina antipolvo verde','Deshumidificador','Higrómetro']],
+ ['Costura y taller',['Mesa para la máquina de coser de columna','Lámpara para la máquina','Organizador de hebillas por color y tamaño (aprobado)','Estantes de material','Burro de devoluciones y disputas','Mesa de restauración con lámpara de lupa','Vaporera','Burro de tintorería y costurera','Repuestos: botones y cinturones']],
+ ['Despacho',['Escritorio de 150 × 70 cm','Silla buena','Segunda pantalla','Impresora a color para las cartas','Tablón del día','Estante de llegadas','Microondas, nevera pequeña y hervidor','Fibra y router','SAI para el Mac del bot']],
+ ['Seguridad',['Alarma','Cámaras de seguridad','Persiana','Vinilo con filtro UV','Extintor','Botiquín','Señal de salida','Seguro del stock']]
+];
+let eqState = {}; try { eqState = JSON.parse(localStorage.getItem('lauxen-equip') || '{}'); } catch(e){}
+const eqEl = document.getElementById('equip');
+EQ.forEach(([g,items],gi)=>{
+  const col = document.createElement('div');
+  col.innerHTML = `<h3>${g}</h3>` + items.map((t,i)=>`<label for="eq-${gi}-${i}"><input type="checkbox" id="eq-${gi}-${i}"><span>${t}</span></label>`).join('');
+  eqEl.appendChild(col);
+});
+function countEq(){ const all = eqEl.querySelectorAll('input'), done = [...all].filter(c=>c.checked).length; document.getElementById('eqCount').textContent = done + ' de ' + all.length; }
+eqEl.querySelectorAll('input').forEach(cb=>{
+  cb.checked = !!eqState[cb.id];
+  cb.addEventListener('change', ()=>{ eqState[cb.id] = cb.checked; try { localStorage.setItem('lauxen-equip', JSON.stringify(eqState)); } catch(e){} countEq(); });
+});
+countEq();
+
+/* arranque */
+document.querySelectorAll('[data-v]').forEach(x=>x.setAttribute('aria-pressed', +x.dataset.v===cur ? 'true':'false'));
+document.getElementById('tTags').setAttribute('aria-pressed', tagsOn ? 'true':'false');
+if (matchMedia('(pointer:coarse)').matches) document.querySelector('.hint').textContent = 'Un dedo para girar · dos dedos para acercar y mover';
+readTokens();
+build();
+calc();
+resize();
+setCam('3d', true);
+loop();
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(()=>{ build(); applyCam(); });
+})();
+</script>
