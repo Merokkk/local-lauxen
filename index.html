@@ -114,7 +114,7 @@ input[type=number]{font:inherit; font-family:var(--f-mono); width:84px; padding:
 .result .row span:last-child{font-family:var(--f-mono); font-variant-numeric:tabular-nums}
 .warn{color:#A4442B}
 
-ol.flow{list-style:none; padding:0; margin:0; display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:10px; counter-reset:f}
+ol.flow{list-style:none; padding:0; margin:0; display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:10px; counter-reset:f}
 ol.flow li{counter-increment:f; border-top:2px solid var(--brass); padding-top:8px; font-size:14px}
 ol.flow li::before{content:counter(f); font-family:var(--f-mono); font-size:12px; color:var(--brass); display:block}
 ul.check{list-style:none; padding:0; margin:0; display:flex; flex-direction:column}
@@ -244,9 +244,10 @@ footer{font-size:13px; color:var(--muted); border-top:1px solid var(--line); pad
     <h2>Recorrido de una gabardina</h2>
     <ol class="flow">
       <li>Llega el paquete y se apunta en el despacho</li>
-      <li>Taller: abrir, autenticar, vapor o a tintorería</li>
-      <li>Estudio: una sola sesión, manta o maniquí</li>
+      <li>Llegada: abrir, revisar y grabar; sale plegada a tintorería y costurera</li>
+      <li>Vuelve limpia: hebillas en la máquina y plancha al lado</li>
       <li>Almacén: en funda con su LX a la vista</li>
+      <li>Estudio: una sola sesión, manta o maniquí</li>
       <li>Embalaje grabado desde arriba</li>
       <li>Sale el envío por la misma puerta</li>
     </ol>
@@ -311,10 +312,10 @@ const fmt = (n, d=1) => n.toLocaleString('es-ES', {minimumFractionDigits:0, maxi
 const ZI = {
   despacho:{n:'Entrada y despacho', c:'#A99BC6', f:'#A97F55', d:'Escritorio con ordenador e impresora de etiquetas, de cara a la puerta. Rincón con microondas y nevera pequeña.'},
   embalaje:{n:'Embalaje y grabación', c:'#C98F5E', f:'#BDB6AA', d:'Mesa isla de 180 × 90 cm a 90 cm de alto: doblas la gabardina entera sin que cuelgue. Pórtico con cámara cenital a 2 m, cámara lateral, dos paneles LED y estantería con cajas, papel de seda, tarjetas y hebillas. Purificador para el polvo del cartón.'},
-  estudio:{n:'Estudio · 2 sets', c:'#7FA3C6', f:'#D8D6D1', d:'Set 1: manta fotográfica de 2,7 m con maniquí o perchero, cámara a 2,7 m. Set 2: tablero de aglomerado de 2,2 × 1,7 m anclado a la pared con la manta encima. Se recoge hacia arriba y se baja plano o inclinado 20°, con la cámara perpendicular a 1,25 m y dos luces LED con pinza en los lados. Cerrado para que la luz no cambie. Purificador de aire para que no caiga polvo en la manta y alfombra adhesiva en la puerta. Sin plancha ni nada que estorbe al hacer las fotos.'},
+  estudio:{n:'Estudio · 2 sets', c:'#7FA3C6', f:'#D8D6D1', d:'Set 1: manta fotográfica de 2,7 m con maniquí o perchero, siempre en la marca del centro, y cámara a 2,7 m. Dos softbox iguales a 45°, uno a cada lado, a unos 1,4 m de la pieza y a la altura del pecho del maniquí. Set 2: tablero de aglomerado de 2,2 × 1,7 m anclado a la pared con la manta encima. Se recoge hacia arriba y se baja plano o inclinado 20°, con la cámara perpendicular a 1,25 m y dos luces LED con pinza en los lados. Cerrado para que la luz no cambie. Purificador de aire para que no caiga polvo en la manta y alfombra adhesiva en la puerta. Sin plancha ni nada que estorbe al hacer las fotos.'},
   almacen:{n:'Almacén de burros', c:'#5F9277', f:'#BDB6AA', d:'Burros en dos filas con pasillo de más de 1 m y un cartel por modelo. Cada funda lleva su LX. Cortina antipolvo verde, que es también el fondo del vídeo de embalaje. Deshumidificador e higrómetro, y un split de climatización que en verano también seca el aire.'},
-  taller:{n:'Llegada y revisión', c:'#D07A52', f:'#BDB6AA', d:'Fase 1: abres el paquete y extiendes la pieza en la mesa de 160 × 90 cm, donde cabe entera tu pieza más larga (132 cm), o la cuelgas del gancho de pared a 1,85 m para verla a la altura de los ojos. Luz LED de 5.000 K y el móvil encima para grabar desde el primer momento el estado del tejido y las manchas. Luego se pliega para la tintorería o la costurera, sin burro. Aquí también se plancha, con la tabla ancha y la plancha de calderín, para dejar libre el estudio. Fregadero pequeño (agua para la vaporera y para lavarte las manos) y extractor que saca el vapor antes de que llegue al almacén.'},
-  costura:{n:'Costura y material', c:'#B8A15A', f:'#BDB6AA', d:'Mesa para la máquina de coser de columna con su lámpara, organizador de hebillas por color y tamaño, estantes de material (sobrante de shooting, cajas, repuestos) y burro de devoluciones y disputas.'},
+  taller:{n:'Llegada y revisión', c:'#D07A52', f:'#BDB6AA', d:'Fase 1: abres el paquete y extiendes la pieza en la mesa de 160 × 90 cm, donde cabe entera tu pieza más larga (132 cm), o la cuelgas del gancho de pared a 1,85 m para verla a la altura de los ojos. Luz LED de 5.000 K y el móvil encima para grabar desde el primer momento el estado del tejido y las manchas. Luego se pliega para la tintorería o la costurera, sin burro. Fregadero pequeño (agua para la vaporera y para lavarte las manos) y extractor que saca el vapor antes de que llegue al almacén.'},
+  costura:{n:'Costura y plancha', c:'#B8A15A', f:'#BDB6AA', d:'La pieza vuelve limpia de la tintorería y la costurera: pones las hebillas en la máquina de coser de columna y, al levantarte, la planchas al lado, en la tabla ancha con plancha de calderín. De aquí va al almacén y al estudio. Organizador de hebillas por color y tamaño y estantes de material (sobrante de shooting, cajas, repuestos). Las devoluciones y disputas van en una caja del estante, sin burro.'},
   bano:{n:'Baño', c:'#8FA0A8', f:'#CBD3D6', d:'Inodoro y lavabo. Si ya existe en el local, te ahorras la obra más cara.'},
   showroom:{n:'Showroom y despacho', c:'#C9A15E', f:'#A97F55', d:'Recibes al cliente con cita. Sillones, burro expositor y tu escritorio. Vidrio hacia el embalaje: el cliente ve cómo se prepara su pieza.'},
   probador:{n:'Probador', c:'#B7869A', f:'#A97F55', d:'Cortina y espejo de cuerpo entero. Aquí confirmas el fit en persona.'},
@@ -333,18 +334,18 @@ const V = {
   items:[
    ['desk',0.42,1.25,PI/2],['office',0.6,2.53,PI],['plant',2.35,0.3],
    ['packisle',4.0,1.45,1.6,0.8],['tripod',4.0,0.35,4.0,1.45],['led',2.95,0.75,4.0,1.45],['led',5.15,0.4,4.0,1.45],['shelf',5.77,1.45,2.4,-PI/2],
-   ['backdrop',0.06,4.6,PI/2,2.7],['manq',0.95,4.05,PI/2,'#C9A46E',0],['burro',0.95,5.25,'z',0.8,'coat',1],['tripod',3.2,4.6,0.95,4.6],
-   ['board',2.3,7.2,2.2,1.7],['softbox',1.9,3.3,0.95,4.6],['softbox',0.8,6.0,2.3,6.4],
+   ['backdrop',0.06,4.6,PI/2,2.7],['manq',0.95,4.6,PI/2,'#C9A46E',0],['burro',0.7,6.55,'z',0.8,'coat',1],['tripod',3.2,4.6,0.95,4.6],
+   ['board',2.3,7.2,2.2,1.7],['softbox',2.0,3.85,0.95,4.6],['softbox',2.0,5.35,0.95,4.6],
    ['burro',5.7,3.65,'z',1.5,'bag',20],['burro',5.7,5.25,'z',1.5,'bag',20],['burro',5.7,6.85,'z',1.5,'bag',20],
    ['burro',4.15,3.65,'z',1.5,'bag',20],['burro',4.15,5.25,'z',1.5,'bag',20],['burro',4.15,6.85,'z',1.5,'bag',20],
    ['shelf',5.77,8.1,0.9,-PI/2],['dehum',4.9,8.35],
    ['purifier',3.55,6.95],['purifier',2.9,2.5],
    ['split',5.9,1.45,-PI/2],['split',5.9,5.25,-PI/2],['split',0.8,2.96,0],['utilsink',3.55,9.78,-PI/2],['extractor',1.5,9.97],
    ['rtable',1.6,9.5,0],['wallbox',1.6,2.35,9.5,1.2,0.04,0.3,'#FFFDF5',1],['wallhook',3.4,7.25,0],['wallbox',3.4,2.35,7.6,0.6,0.04,0.3,'#FFFDF5',1],
-   ['ironing',2.1,7.5,0],['steamer',3.0,7.6],['sewing',0.3,8.55,PI/2],
+   ['ironing',1.4,7.5,0],['steamer',3.0,7.6],['sewing',0.3,8.55,PI/2],
    ['toilet',5.65,9.5,-PI/2],['sink',4.85,9.8,PI]
   ],
-  route:[[1.5,0.45,1],[2.9,2.3],[4.9,2.45],[4.9,7.95],[2.9,8.4,2],[4.9,7.95],[4.9,2.45],[2.05,2.45],[2.05,3.3],[2.0,4.7,3],[2.05,3.3],[2.05,2.45],[4.9,2.45],[4.9,5.2,4],[4.9,2.45],[4.0,2.3,5],[2.9,2.3],[1.5,0.45,6]]
+  route:[[1.5,0.45,1],[2.9,2.3],[4.9,2.45],[4.9,7.95],[2.9,8.4,2],[1.1,8.05,3],[2.9,8.4],[4.9,7.95],[4.9,5.2,4],[4.9,2.45],[2.05,2.45],[2.05,3.3],[2.0,4.7,5],[2.05,3.3],[2.05,2.45],[4.0,2.3,6],[2.9,2.3],[1.5,0.45,7]]
  },
  70:{W:7, D:10, door:[1.2,2.2], burrosStock:6, burrosTotal:6, clients:'No', probadores:0, camDist:'2,7 m',
   foot:'La medida óptima: cada zona tiene el ancho y el largo que pide una gabardina, sin metros que pagues y no uses.',
@@ -358,18 +359,18 @@ const V = {
    ['camsec',0.15,0.15],['camsec',6.85,0.15],['camsec',6.85,9.85],['camsec',0.15,7.65],
    ['packisle',4.9,1.6,1.8,0.9],['tripod',4.9,0.4,4.9,1.6],['led',3.45,1.0,4.9,1.6],['led',6.2,2.6,4.9,1.6],['shelf',6.77,2.05,1.7,-PI/2],
    ['shipdesk',6.75,0.65,-PI/2],['crates',3.75,0.3],
-   ['backdrop',0.06,5.15,PI/2,2.7],['manq',0.95,4.55,PI/2,'#C9A46E',0],['burro',0.95,5.85,'z',0.8,'coat',1],['tripod',3.7,5.15,0.95,5.15],
-   ['board',2.55,7.8,2.2,1.7],['softbox',2.0,3.75,0.95,5.0],['softbox',0.9,6.6,2.55,7.0],
-   ['tape',0.95,4.55],['tape',0.95,5.85],['tape',3.7,5.15],['tape',2.55,5.55],['ruler',0.02,6.85,PI/2],
+   ['backdrop',0.06,5.15,PI/2,2.7],['manq',0.95,5.15,PI/2,'#C9A46E',0],['burro',0.75,6.95,'z',0.8,'coat',1],['tripod',3.7,5.15,0.95,5.15],
+   ['board',2.55,7.8,2.2,1.7],['softbox',2.1,4.35,0.95,5.15],['softbox',2.1,5.95,0.95,5.15],
+   ['tape',0.95,5.15],['tape',2.1,4.35],['tape',2.1,5.95],['tape',3.7,5.15],['tape',2.55,5.55],['ruler',0.02,6.85,PI/2],
    ['wallbox',3.55,1.3,3.27,0.3,0.42,0.01,'#FFFFFF'],['prepcart',4.05,6.1],
    ['purifier',4.1,7.45],['purifier',3.35,2.95],['mat',2.5,3.45,0.8,0.5],
-   ['split',6.9,1.6,-PI/2],['split',6.9,5.75,-PI/2],['split',1.0,3.36,0],['utilsink',2.05,9.01,PI/2],['extractor',3.4,9.97],
+   ['split',6.9,1.6,-PI/2],['split',6.9,5.75,-PI/2],['split',1.0,3.36,0],['utilsink',2.05,9.01,PI/2],['extractor',4.45,9.97],
    ['burro',6.7,4.15,'z',1.5,'bag',20,true],['burro',6.7,5.75,'z',1.5,'bag',20,true],['burro',6.7,7.35,'z',1.5,'bag',20,true],
    ['burro',4.75,4.15,'z',1.5,'bag',20,true],['burro',4.75,5.75,'z',1.5,'bag',20,true],['burro',4.75,7.35,'z',1.5,'bag',20,true],
    ['dehum',6.1,7.95],['wallbox',6.98,1.9,3.35,0.02,0.12,0.08,'#DADAD5'],
-   ['sewing',6.7,8.9,-PI/2],['organizer',4.85,9.78,PI],['shelf',6.1,9.77,1.6,PI],['burro',5.0,8.4,'x',0.9,'mix',4],
+   ['sewing',6.7,8.9,-PI/2],['organizer',4.85,9.78,PI],['shelf',6.1,9.77,1.6,PI],['ironing',4.85,8.45,0],
    ['rtable',3.3,9.5,0],['wallbox',3.3,2.35,9.5,1.2,0.04,0.3,'#FFFDF5',1],['wallhook',4.1,7.85,0],['wallbox',4.1,2.35,8.2,0.6,0.04,0.3,'#FFFDF5',1],
-   ['ironing',2.85,8.1,0],['steamer',3.68,8.05],
+   ['steamer',3.68,8.05],
    ['toilet',0.35,9.45,PI/2],['sink',1.2,9.8,PI]
   ],
   tags:[
@@ -378,21 +379,21 @@ const V = {
    [0.95,0.65,0.15,'Extintor'],[0.05,1.75,2.35,'Botiquín'],[0.05,1.65,0.4,'Alarma'],[1.7,2.65,0.06,'Salida'],[0.15,2.95,0.15,'Cámara de seguridad'],
    [4.9,2.35,1.6,'Cámara cenital + micro'],[4.9,1.05,1.85,'Mesa 180×90 a 90 cm'],[4.9,1.6,0.4,'Cámara lateral'],[3.45,1.85,1.0,'Panel LED'],
    [6.77,2.15,2.05,'Kit LauxeN: cajas, seda, sello, hebillas, tarjeta 🌹, fundas'],[6.75,1.15,0.65,'Impresora térmica + báscula'],[3.75,0.55,0.3,'Bandejas InPost · GLS · DHL'],
-   [0.95,1.95,4.55,'Maniquí, siempre el mismo'],[0.95,1.85,5.85,'Perchero de foto'],[0.15,2.75,5.15,'Manta fotográfica 2,7 m'],
+   [0.95,1.95,5.15,'Maniquí o perchero, siempre en la marca del centro'],[0.75,1.85,6.95,'Perchero de foto, aparcado'],[0.15,2.75,5.15,'Manta fotográfica 2,7 m'],
    [3.7,1.65,5.15,'Trípode fijo + disparador'],
    [0.05,1.8,6.85,'Regla de longitud total, 0 en la percha'],[1.9,0.1,5.15,'Marcas en el suelo'],[3.55,1.85,3.27,'Ajustes de cámara y luz'],
-   [4.05,1.1,6.1,'Quitapelusas · cepillo · vaporera de mano · carta de color'],[2.0,2.1,3.75,'Luz 5.000 K · CRI 95'],
+   [4.05,1.1,6.1,'Quitapelusas · cepillo · vaporera de mano · carta de color'],[2.1,2.15,4.35,'Softbox 1 a 45° · 5.600 K · CRI 95'],[2.1,2.15,5.95,'Softbox 2 a 45° · misma potencia'],
    [6.7,1.9,4.15,'Kensington'],[6.7,1.9,5.75,'Chelsea'],[6.7,1.9,7.35,'Sandringham'],[4.75,1.9,4.15,'Westminster'],[4.75,1.9,5.75,'Vintage'],[4.75,1.9,7.35,'Otros modelos'],
    [5.7,2.45,3.2,'Cortina = fondo del vídeo'],[6.1,0.75,7.95,'Deshumidificador'],[6.98,2.15,3.35,'Higrómetro 45–55 %'],[5.7,0.35,5.75,'Fundas de tela con etiqueta LX'],
-   [6.7,1.35,8.9,'Máquina de coser de columna'],[4.85,1.35,9.78,'Organizador de hebillas'],[6.1,2.15,9.77,'Material: sobrante de shooting, cajas, repuestos'],[5.0,1.85,8.4,'Devoluciones y disputas'],
+   [6.7,1.35,8.9,'Máquina de coser de columna'],[4.85,1.35,9.78,'Organizador de hebillas'],[6.1,2.15,9.77,'Material: sobrante de shooting, cajas, repuestos'],
    [3.3,1.2,9.5,'Mesa de llegada 160×90 · cabe extendida tu pieza de 132 cm'],[3.3,2.6,9.5,'Luz LED 5.000 K + móvil cenital · vídeo de llegada'],
-   [4.1,2.05,7.85,'Gancho a 1,85 m · la pieza a la altura de los ojos'],[2.85,1.2,8.1,'Tabla ancha + plancha con calderín'],[3.68,1.75,8.05,'Vaporera junto al gancho'],[3.5,2.2,-0.25,'Vinilo UV + persiana'],
+   [4.1,2.05,7.85,'Gancho a 1,85 m · la pieza a la altura de los ojos'],[4.85,1.2,8.45,'Plancha junto a la máquina: hebillas y luego plancha'],[3.68,1.75,8.05,'Vaporera junto al gancho'],[3.5,2.2,-0.25,'Vinilo UV + persiana'],
    [4.1,0.85,7.45,'Purificador HEPA · polvo fuera del set'],[3.35,0.85,2.95,'Purificador HEPA · polvo del cartón'],
    [2.5,0.12,3.45,'Alfombra adhesiva antipolvo'],
    [6.9,2.8,1.6,'Split con bomba de calor'],[6.9,2.8,5.75,'Split del almacén · seca el aire'],[1.0,2.85,3.36,'Split del estudio · aire al techo'],
-   [2.05,1.15,9.01,'Fregadero con la toma del baño'],[3.4,2.65,9.97,'Extractor del vapor']
+   [2.05,1.15,9.01,'Fregadero con la toma del baño'],[4.45,2.65,9.97,'Extractor del vapor']
   ],
-  route:[[1.7,0.5,1],[3.4,2.6],[5.7,2.75],[5.7,8.95],[3.2,9.0,2],[5.7,8.95],[5.7,2.75],[2.45,2.75],[2.45,3.6],[2.4,5.0,3],[2.45,3.6],[2.45,2.75],[5.7,2.75],[5.7,5.8,4],[5.7,2.75],[4.9,2.5,5],[3.4,2.6],[1.7,0.5,6]]
+  route:[[1.7,0.5,1],[3.4,2.6],[5.7,2.75],[5.75,8.95],[3.2,9.05,2],[5.8,9.1,3],[5.75,5.8,4],[5.7,2.75],[2.45,2.75],[2.45,3.6],[2.4,5.0,5],[2.45,3.6],[2.45,2.75],[4.9,2.5,6],[3.4,2.6],[1.7,0.5,7]]
  },
  90:{W:9, D:10, door:[2.6,3.8], burrosStock:8, burrosTotal:9, clients:'Sí, con cita', probadores:1, camDist:'2,9 m',
   foot:'Añade la parte de clientes y un trastero. El stock sube a 160 piezas. El nombre de cada cosa sale en el de 70 m².',
@@ -406,8 +407,8 @@ const V = {
    ['rug',3.9,1.4,2.0,1.7,'#2E4A3E'],['arm',4.75,0.85,-PI/2],['arm',4.75,1.95,-PI/2],['ctable',3.95,1.4],
    ['desk',2.2,2.2,0],['burro',4.45,3.3,'x',1.5,'coat',8],['plant',5.15,0.3],['plant',1.5,0.3],
    ['packisle',6.9,1.6,1.8,0.9],['tripod',6.9,0.4,6.9,1.6],['led',5.85,0.55,6.9,1.6],['led',8.0,0.45,6.9,1.6],['shelf',8.77,1.8,2.8,-PI/2],
-   ['backdrop',0.06,5.55,PI/2,2.7],['manq',0.95,5.0,PI/2,'#C9A46E',0],['burro',0.95,6.2,'z',0.8,'coat',1],['tripod',3.9,5.55,0.95,5.55],
-   ['board',2.85,8.2,2.2,1.7],['softbox',2.1,4.15,0.95,5.3],['softbox',1.2,7.0,2.85,7.4],
+   ['backdrop',0.06,5.55,PI/2,2.7],['manq',0.95,5.55,PI/2,'#C9A46E',0],['burro',0.8,7.35,'z',0.8,'coat',1],['tripod',3.9,5.55,0.95,5.55],
+   ['board',2.85,8.2,2.2,1.7],['softbox',2.1,4.75,0.95,5.55],['softbox',2.1,6.35,0.95,5.55],
    ['rtable',5.1,5.2,PI/2],['wallbox',5.1,2.35,5.2,0.3,0.04,1.2,'#FFFDF5',1],['wallhook',4.65,3.95,PI/2],['wallbox',5.0,2.35,3.95,0.3,0.04,0.6,'#FFFDF5',1],
    ['steamer',5.0,6.6],['sewing',4.88,7.6,PI/2],['ironing',6.1,8.1,PI/2],
    ['burro',8.7,4.4,'z',1.5,'bag',20],['burro',8.7,6.0,'z',1.5,'bag',20],['burro',8.7,7.6,'z',1.5,'bag',20],['burro',8.7,9.2,'z',1.5,'bag',20],
@@ -417,10 +418,10 @@ const V = {
    ['split',8.9,1.8,-PI/2],['split',8.9,6.8,-PI/2],['split',1.3,3.76,0],['utilsink',4.85,9.75,PI],['extractor',5.6,9.97],
    ['toilet',0.35,9.5,PI/2],['sink',1.35,9.8,PI]
   ],
-  route:[[3.2,0.45,1],[5.1,2.7],[5.9,3.2],[5.6,8.8],[5.3,7.0,2],[5.6,8.8],[5.9,3.2],[3.05,3.2],[3.05,4.0],[2.4,5.6,3],[3.05,4.0],[3.05,3.2],[5.9,3.2],[7.7,3.4],[7.7,6.5,4],[7.7,3.4],[6.9,2.6,5],[5.1,2.7],[3.2,0.45,6]]
+  route:[[3.2,0.45,1],[5.1,2.7],[5.9,3.2],[5.95,5.2,2],[5.5,7.9,3],[5.9,3.6],[7.7,3.4],[7.7,6.5,4],[7.7,3.4],[5.9,3.2],[3.05,3.2],[3.05,4.0],[2.4,5.6,5],[3.05,4.0],[3.05,3.2],[5.9,3.2],[6.9,2.6,6],[5.1,2.7],[3.2,0.45,7]]
  }
 };
-const STEPS = ['Llega el paquete','Llegada: revisar y grabar','Estudio: fotos','Almacén: en funda','Embalaje grabado','Sale el envío'];
+const STEPS = ['Llega el paquete','Llegada: revisar y grabar','Vuelve limpia: hebillas y plancha','Almacén: en funda','Estudio: fotos','Embalaje grabado','Sale el envío'];
 const ORDER = [60,70,90];
 
 /* ---------- Escena ---------- */
@@ -1107,10 +1108,10 @@ toggle('tTags', on=>{ tagsOn = on; dirty = true; });
 
 /* ---------- Equipamiento ---------- */
 const EQ = [
- ['Estudio',['Manta fotográfica de 2,7 m con soporte','Maniquí, siempre el mismo, con hombros a 1,45 m o más','Perchero de foto con barra a 1,60 m o más y percha de madera','Tablero de aglomerado de 19 mm, 2,2 × 1,7 m, con bastidor de listones','Bisagra de piano de 2,2 m y listón anclado a la pared','Pinzas o imanes para la manta','2 softbox de 5.000–5.600 K, CRI 95 o más','2 trípodes fijos','Disparador remoto','Cinta para las marcas del suelo','Regla de longitud total en la pared','Carta de color','Hoja de ajustes de cámara y luz','Carro: quitapelusas, cepillo y vaporera de mano','2 patas telescópicas plegables de 40 a 80 cm','2 cerrojos para dejar el tablero recogido','Brazo horizontal para el trípode del tablero','2 luces LED con pinza y brazo flexible, 5.000–5.600 K, CRI 95 o más','Purificador de aire HEPA H13, 250–300 m³/h o más','Alfombra adhesiva antipolvo para la puerta']],
+ ['Estudio',['Manta fotográfica de 2,7 m con soporte','Maniquí, siempre el mismo, con hombros a 1,45 m o más','Perchero de foto con barra a 1,60 m o más y percha de madera','Tablero de aglomerado de 19 mm, 2,2 × 1,7 m, con bastidor de listones','Bisagra de piano de 2,2 m y listón anclado a la pared','Pinzas o imanes para la manta','2 focos LED de 5.600 K, CRI y TLCI de 95 o más, con softbox de 60 × 90 cm','2 trípodes fijos','Disparador remoto','Cinta para las marcas del suelo','Regla de longitud total en la pared','Carta de color','Hoja de ajustes de cámara y luz','Carro: quitapelusas, cepillo y vaporera de mano','2 patas telescópicas plegables de 40 a 80 cm','2 cerrojos para dejar el tablero recogido','Brazo horizontal para el trípode del tablero','2 luces LED con pinza y brazo flexible, 5.000–5.600 K, CRI 95 o más','Purificador de aire HEPA H13, 250–300 m³/h o más','Alfombra adhesiva antipolvo para la puerta']],
  ['Embalaje y grabación',['Mesa de 180 × 90 cm a 90 cm de alto','Pórtico o brazo cenital con soporte','Cámara lateral en trípode','2 paneles LED','Micro pequeño','Cajas de unos 50 × 40 × 12 cm','Papel de seda','Pegatina o sello de cierre','Juego de hebillas de recambio en bolsita','Tarjeta «El equipo de LauxeN 🌹»','Fundas de tela','Impresora térmica de etiquetas','Báscula','Cinta, cúter y film','Bandejas InPost, GLS y DHL','Purificador de aire HEPA H13']],
  ['Almacén',['Burros de stock (ver calculador)','Cartel por modelo en cada burro','Unas 150 perchas de madera iguales','Fundas transpirables con etiqueta LX','Etiquetadora','Cortina antipolvo verde','Deshumidificador','Higrómetro']],
- ['Costura y llegada',['Mesa para la máquina de coser de columna','Lámpara para la máquina','Organizador de hebillas por color y tamaño (aprobado)','Estantes de material','Burro de devoluciones y disputas','Mesa de llegada de 160 × 90 cm con lámpara de lupa','Vaporera','Gancho de pared a 1,85 m para revisar la pieza colgada','Repuestos: botones y cinturones','Panel LED de 5.000 K y CRI 95 sobre la mesa y el gancho','Brazo cenital para el móvil (vídeo de llegada)','Tabla de planchar ancha con brazo para mangas','Plancha con calderín (generador de vapor) y paño de planchar']],
+ ['Costura, plancha y llegada',['Mesa para la máquina de coser de columna','Lámpara para la máquina','Organizador de hebillas por color y tamaño (aprobado)','Estantes de material','Caja de devoluciones y disputas en el estante','Mesa de llegada de 160 × 90 cm con lámpara de lupa','Vaporera','Gancho de pared a 1,85 m para revisar la pieza colgada','Repuestos: botones y cinturones','Panel LED de 5.000 K y CRI 95 sobre la mesa y el gancho','Brazo cenital para el móvil (vídeo de llegada)','Tabla de planchar ancha con brazo para mangas','Plancha con calderín (generador de vapor) y paño de planchar']],
  ['Despacho',['Escritorio de 150 × 70 cm','Silla buena','Segunda pantalla','Impresora a color para las cartas','Tablón del día','Estante de llegadas','Microondas, nevera pequeña y hervidor','Fibra y router','SAI para el Mac del bot']],
  ['Seguridad',['Alarma','Cámaras de seguridad','Persiana','Vinilo con filtro UV','Extintor','Botiquín','Señal de salida','Seguro del stock']],
  ['Instalaciones',['Climatización con bomba de calor: 3 splits (entrada, almacén y estudio)','Sitio y permiso para la unidad exterior','Fregadero pequeño junto al baño','Extractor de vapor en el taller','Agua destilada para la vaporera y la plancha']]
