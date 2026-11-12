@@ -76,6 +76,7 @@ button:focus-visible, input:focus-visible{outline:2px solid var(--brass); outlin
 .equip input{margin:3px 0 0; accent-color:var(--accent)}
 .equip input:checked + span{color:var(--muted); text-decoration:line-through}
 @media (max-width:900px){ .equip{grid-template-columns:minmax(0,1fr)} }
+.haveNote{position:absolute; left:12px; top:10px; font-size:12px; color:var(--ink,#1B2420); background:var(--stage); padding:4px 9px; border-radius:4px; pointer-events:none; display:none}
 .hint{position:absolute; left:12px; bottom:10px; font-size:12px; color:var(--muted); background:var(--stage); padding:3px 8px; border-radius:4px; pointer-events:none}
 .nogl{position:absolute; inset:0; display:grid; place-items:center; padding:24px; text-align:center; color:var(--muted)}
 
@@ -183,6 +184,7 @@ footer{font-size:13px; color:var(--muted); border-top:1px solid var(--line); pad
         <button type="button" class="chip" id="tFlow" aria-pressed="false">Recorrido de una pieza</button>
         <button type="button" class="chip" id="tLow" aria-pressed="false">Paredes bajas</button>
         <button type="button" class="chip" id="tTags" aria-pressed="true">Nombre de cada cosa</button>
+        <button type="button" class="chip" id="tHave" aria-pressed="false">Con lo que ya tengo</button>
       </div>
     </div>
 
@@ -190,6 +192,7 @@ footer{font-size:13px; color:var(--muted); border-top:1px solid var(--line); pad
       <div class="viewer" id="viewer">
         <canvas id="scene" aria-label="Modelo 3D del local"></canvas>
         <div class="labels" id="labels"></div>
+        <div class="haveNote" id="haveNote">Macizo: lo que ya tienes · transparente: lo que falta</div>
         <div class="hint">Arrastra para girar · rueda o pellizco para acercar · Mayús + arrastrar para mover</div>
       </div>
       <aside class="legend" aria-label="Zonas">
@@ -345,6 +348,10 @@ const V = {
    ['ironing',1.4,7.5,0],['steamer',3.0,7.6],['sewing',0.3,8.55,PI/2],
    ['toilet',5.65,9.5,-PI/2],['sink',4.85,9.8,PI]
   ],
+  have:[
+   ['backdrop',0.06,4.6,PI/2,2.0,'#F1EFEA'],['manq',0.95,4.6,PI/2,'#D9CDB8',0],['manq',0.7,6.55,PI/2,'#4A4D50',0],['valet',0.55,3.3,PI/2],
+   ['godox',2.0,3.85,0.95,4.6,'octa'],['godox',2.0,5.35,0.95,4.6,'diff'],['tripod',3.2,4.6,0.95,4.6],['bins',5.7,3.65,PI/2,2]
+  ],
   route:[[1.5,0.45,1],[2.9,2.3],[4.9,2.45],[4.9,7.95],[2.9,8.4,2],[1.1,8.05,3],[2.9,8.4],[4.9,7.95],[4.9,5.2,4],[4.9,2.45],[2.05,2.45],[2.05,3.3],[2.0,4.7,5],[2.05,3.3],[2.05,2.45],[4.0,2.3,6],[2.9,2.3],[1.5,0.45,7]]
  },
  70:{W:7, D:10, door:[1.2,2.2], burrosStock:6, burrosTotal:6, clients:'No', probadores:0, camDist:'2,7 m',
@@ -393,6 +400,19 @@ const V = {
    [6.9,2.8,1.6,'Split con bomba de calor'],[6.9,2.8,5.75,'Split del almacén · seca el aire'],[1.0,2.85,3.36,'Split del estudio · aire al techo'],
    [2.05,1.15,9.01,'Fregadero con la toma del baño'],[4.45,2.65,9.97,'Extractor del vapor']
   ],
+  have:[
+   ['backdrop',0.06,5.15,PI/2,2.0,'#F1EFEA'],['manq',0.95,5.15,PI/2,'#D9CDB8',0],['manq',0.6,6.95,PI/2,'#4A4D50',0],['valet',0.55,3.75,PI/2],
+   ['godox',2.1,4.35,0.95,5.15,'octa'],['godox',2.1,5.95,0.95,5.15,'diff'],['tripod',3.7,5.15,0.95,5.15],['bins',6.7,4.15,PI/2,2]
+  ],
+  haveTags:[
+   [0.95,1.95,5.15,'Maniquí de costura en la marca del centro'],[0.6,1.85,6.95,'Forma masculina gris, aparcada'],[0.55,2.0,3.75,'Valet L170 = perchero de foto, aparcado'],
+   [0.15,2.75,5.15,'Fondo de tela blanco 2 × 3 m en soporte SH'],
+   [2.1,2.15,4.35,'Godox SL60W + Triopo K355 sin panal · luz principal a 45°'],[2.1,2.15,5.95,'Godox 60 W tras el difusor de 80 cm (reflector 5 en 1)'],
+   [3.7,1.65,5.15,'iPhone en trípode TACKLIFE + micro de solapa'],[1.9,0.1,5.15,'Ambas luces a ~1,3 m de la pieza'],
+   [3.45,1.85,1.0,'Neewer BP300 · vídeo de embalaje'],[6.2,1.85,2.6,'Neewer BP300'],
+   [6.7,1.9,4.15,'Burro SONGMICS'],[6.7,1.9,5.75,'Burro T-LoVendo'],[6.7,0.55,3.6,'2 cajas de 57 L debajo de las piezas'],
+   [3.68,1.75,8.05,'Vaporera Cecotec 4050 X-Treme · manopla de planchar']
+  ],
   route:[[1.7,0.5,1],[3.4,2.6],[5.7,2.75],[5.75,8.95],[3.2,9.05,2],[5.8,9.1,3],[5.75,5.8,4],[5.7,2.75],[2.45,2.75],[2.45,3.6],[2.4,5.0,5],[2.45,3.6],[2.45,2.75],[4.9,2.5,6],[3.4,2.6],[1.7,0.5,7]]
  },
  90:{W:9, D:10, door:[2.6,3.8], burrosStock:8, burrosTotal:9, clients:'Sí, con cita', probadores:1, camDist:'2,9 m',
@@ -418,9 +438,14 @@ const V = {
    ['split',8.9,1.8,-PI/2],['split',8.9,6.8,-PI/2],['split',1.3,3.76,0],['utilsink',4.85,9.75,PI],['extractor',5.6,9.97],
    ['toilet',0.35,9.5,PI/2],['sink',1.35,9.8,PI]
   ],
+  have:[
+   ['backdrop',0.06,5.55,PI/2,2.0,'#F1EFEA'],['manq',0.95,5.55,PI/2,'#D9CDB8',0],['manq',0.7,7.35,PI/2,'#4A4D50',0],['valet',0.55,4.05,PI/2],
+   ['godox',2.1,4.75,0.95,5.55,'octa'],['godox',2.1,6.35,0.95,5.55,'diff'],['tripod',3.9,5.55,0.95,5.55],['bins',8.7,4.4,PI/2,2]
+  ],
   route:[[3.2,0.45,1],[5.1,2.7],[5.9,3.2],[5.95,5.2,2],[5.5,7.9,3],[5.9,3.6],[7.7,3.4],[7.7,6.5,4],[7.7,3.4],[5.9,3.2],[3.05,3.2],[3.05,4.0],[2.4,5.6,5],[3.05,4.0],[3.05,3.2],[5.9,3.2],[6.9,2.6,6],[5.1,2.7],[3.2,0.45,7]]
  }
 };
+const HAVE_KEEP = new Set(['toilet','sink','steamer','led']);
 const STEPS = ['Llega el paquete','Llegada: revisar y grabar','Vuelve limpia: hebillas y plancha','Almacén: en funda','Estudio: fotos','Embalaje grabado','Sale el envío'];
 const ORDER = [60,70,90];
 
@@ -435,7 +460,8 @@ catch(e){ const d=document.createElement('div'); d.className='nogl'; d.textConte
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const BOARD_TILT = 20*Math.PI/180;
 let boardPos = 'tilt';
-let cur = 70, zonesOn = true, flowOn = false, lowWalls = false, tagsOn = !matchMedia('(max-width:700px)').matches, selected = null, camMode = '3d';
+let cur = 70, zonesOn = true, flowOn = false, lowWalls = false, tagsOn = !matchMedia('(max-width:700px)').matches, selected = null, camMode = '3d', haveOn = false;
+try { haveOn = localStorage.getItem('lauxen-local-have') === '1'; } catch(e){}
 try { const s = localStorage.getItem('lauxen-local-v'); if (s && V[s]) cur = +s; } catch(e){}
 
 const scene = new THREE.Scene();
@@ -464,8 +490,10 @@ if (renderer){
 
 /* materiales */
 const matCache = {};
+let GHOST = false;
 function M(color, o){
   o = o || {};
+  if (GHOST) o = Object.assign({}, o, {op: Math.min(o.op ?? 1, 0.13)});
   const key = color + '|' + (o.r??'') + '|' + (o.m??'') + '|' + (o.op??'') + '|' + (o.e??'');
   if (matCache[key]) return matCache[key];
   const m = new THREE.MeshStandardMaterial({color, roughness:o.r ?? 0.8, metalness:o.m ?? 0});
@@ -475,11 +503,11 @@ function M(color, o){
 }
 function box(p, w,h,d, x,y,z, color, o){
   const m = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), M(color,o));
-  m.position.set(x, y + h/2, z); m.castShadow = !(o && o.noShadow); m.receiveShadow = true; p.add(m); return m;
+  m.position.set(x, y + h/2, z); m.castShadow = !GHOST && !(o && o.noShadow); m.receiveShadow = true; p.add(m); return m;
 }
 function cyl(p, rt,rb,h, x,y,z, color, o, seg){
   const m = new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,seg||18), M(color,o));
-  m.position.set(x, y + h/2, z); m.castShadow = true; m.receiveShadow = true; p.add(m); return m;
+  m.position.set(x, y + h/2, z); m.castShadow = !GHOST; m.receiveShadow = true; p.add(m); return m;
 }
 function grp(x,z,rot,y){ const g = new THREE.Group(); g.position.set(x, y||0, z); g.rotation.y = rot||0; model.add(g); return g; }
 const faceTo = (x,z,tx,tz) => Math.atan2(tx-x, tz-z);
@@ -559,12 +587,13 @@ const B = {
     box(g,0.58,1.76,0.045, 0,0.13,0.004,'#C6D6DA',{m:.7,r:.08});
   },
   plant(x,z){ cyl(model,0.16,0.12,0.38,x,0,z,'#3B3B38'); const s = new THREE.Mesh(new THREE.SphereGeometry(0.3,14,10), M('#4E6B45',{r:.9})); s.position.set(x,0.72,z); s.castShadow=true; model.add(s); const s2=s.clone(); s2.scale.setScalar(.7); s2.position.set(x+.08,1.0,z-.05); model.add(s2); },
-  backdrop(x,z,rot,w){
+  backdrop(x,z,rot,w,col){
+    col = col || '#E9E2D6';
     const g = grp(x,z,rot);
     [-w/2-0.05, w/2+0.05].forEach(ex=>cyl(g,0.015,0.015,2.7, ex,0,0.12,DARK,{},8));
     const cb = cyl(g,0.02,0.02,w+0.2, 0,2.62,0.12,DARK,{},8); cb.rotation.z = PI/2;
-    box(g,w,2.55,0.012, 0,0.06,0.13,'#E9E2D6',{r:1});
-    box(g,w,0.008,1.5, 0,0,0.85,'#E9E2D6',{r:1, noShadow:true});
+    box(g,w,2.55,0.012, 0,0.06,0.13,col,{r:1});
+    box(g,w,0.008,1.5, 0,0,0.85,col,{r:1, noShadow:true});
   },
   softbox(x,z,tx,tz){
     const g = grp(x,z,faceTo(x,z,tx,tz));
@@ -708,7 +737,7 @@ const B = {
       box(pg,0.12,0.025,0.2, 0,-0.0125,0,'#1a1a1a');
       box(pg,0.1,0.004,0.18, 0,-0.029,0,'#FFF4DC', up ? {} : {e:'#FFF4DC'});
     });
-    if (V[cur].tags){
+    if (V[cur].tags && !haveOn){
       const ly = up ? H+d/2+0.28 : H+0.62*Math.cos(a)-d/2*Math.sin(a), lz = up ? 0.1 : W0+0.62*Math.sin(a)+d/2*Math.cos(a);
       addLabel('tag', 'Luz LED con pinza y brazo flexible', x+w/2+0.1, ly, z-0.05-lz);
     }
@@ -720,7 +749,7 @@ const B = {
     const cam = new THREE.Group(); cam.position.set(0,cy,cz); cam.rotation.x = up ? PI/2 : a; g.add(cam);
     box(cam,0.15,0.08,0.09, 0,0,0,'#111',{r:.4});
     cyl(cam,0.035,0.035,0.07, 0,-0.07,0,'#111',{r:.3},12);
-    if (V[cur].tags){
+    if (V[cur].tags && !haveOn){
       const mid = up ? [H+d*0.6, 0.12] : [H-d/2*Math.sin(a)+0.3, d/2*Math.cos(a)];
       addLabel('tag', up ? 'Tablero recogido, manta hacia la pared' : boardPos==='flat' ? 'Tablero plano a 85 cm' : 'Tablero inclinado 20°, borde bajo a 27 cm', x, mid[0], z-0.05-mid[1]);
       addLabel('tag', 'Listón anclado + bisagra a 85 cm', x-w/2+0.25, H+0.14, z-0.08);
@@ -728,6 +757,39 @@ const B = {
       if (!up) addLabel('tag', 'Tu pieza más larga: 132 cm', x, H-1.25*Math.sin(a)+0.12, z-0.05-W0-1.25*Math.cos(a));
       if (!up) addLabel('tag', 'Patas plegables de altura regulable', x-legX, 0.3, z-0.05-W0-legD*Math.cos(a));
     }
+  },
+  godox(x,z,tx,tz,mod){
+    // Godox de 60 W en pie de 2,8 m; mod: 'octa' = Triopo K355 de 55 cm, 'diff' = reflector estándar tras el difusor de 80 cm
+    const g = grp(x,z,faceTo(x,z,tx,tz)), hy = 1.55;
+    [0,2.1,4.2].forEach(a=>{ const l = box(g,0.02,0.02,0.5, Math.sin(a)*0.2,0,Math.cos(a)*0.2,'#B7B9B8',{m:.6}); l.rotation.y=a; });
+    cyl(g,0.014,0.014,hy-0.08, 0,0,0,'#B7B9B8',{m:.6,r:.35},8);
+    box(g,0.13,0.17,0.24, 0,hy-0.085,-0.08,WHITE,{r:.4});
+    const cone = (rf,rb,len,z0,col)=>{ const m = new THREE.Mesh(new THREE.CylinderGeometry(rf,rb,len,mod==='octa'?8:18,1,true), M(col,{r:.7})); m.material.side = THREE.DoubleSide; m.rotation.x = PI/2; m.position.set(0,hy,z0+len/2); m.castShadow = !GHOST; g.add(m); return m; };
+    if (mod==='octa'){
+      cone(0.275,0.06,0.36,0.04,'#2A2A2A');
+      const f = new THREE.Mesh(new THREE.CircleGeometry(0.27,8), M('#FFFDF5',{e:'#FFF7E6'})); f.position.set(0,hy,0.405); g.add(f);
+    } else {
+      cone(0.09,0.055,0.12,0.04,'#CFCFCB');
+      const f = new THREE.Mesh(new THREE.CircleGeometry(0.085,18), M('#FFFDF5',{e:'#FFF7E6'})); f.position.set(0,hy,0.165); g.add(f);
+      // difusor del reflector 5 en 1 (80 cm) con su pinza, a 40 cm delante del foco
+      box(g,0.02,0.02,0.42, 0,hy-0.47,0.21,DARK);
+      box(g,0.02,0.06,0.02, 0,hy-0.47,0.42,DARK);
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(0.4,0.012,8,40), M(DARK)); ring.position.set(0,hy,0.44); g.add(ring);
+      const d = new THREE.Mesh(new THREE.CircleGeometry(0.4,40), M('#FFFFFF',{op:0.62, e:'#FFF7E6'})); d.material.side = THREE.DoubleSide; d.position.set(0,hy,0.44); g.add(d);
+    }
+  },
+  valet(x,z,rot){
+    // soporte valet L170: perchero de foto con la pieza colgada
+    const g = grp(x,z,rot);
+    box(g,0.5,0.03,0.05, 0,0,0,METAL,{m:.6}); box(g,0.05,0.03,0.4, 0,0,0,METAL,{m:.6});
+    cyl(g,0.014,0.014,1.66, 0,0.03,0,METAL,{m:.6,r:.4},8);
+    box(g,0.44,0.03,0.04, 0,1.62,0,OAK);
+    box(g,0.5,1.28,0.08, 0,0.34,0.03,'#C9A46E',{r:.9});
+  },
+  bins(x,z,rot,n){
+    // cajas de almacenamiento de 57 L con ruedas, debajo de las piezas colgadas
+    const g = grp(x,z,rot);
+    for (let i=0;i<n;i++){ const cx = (i-(n-1)/2)*0.62; box(g,0.6,0.3,0.4, cx,0.04,0,'#CFD3D2',{r:.5}); box(g,0.62,0.03,0.42, cx,0.34,0,'#8E9493',{r:.5}); }
   },
   bench(x,z,w,d){ box(model,w,0.42,d,x,0,z,OAK); },
   tablon(x,z,rot){ const g = grp(x,z,rot); box(g,1.3,0.8,0.02, 0,1.25,0.01,'#F4F2EC',{r:.6}); [['#E8C547',-0.4,1.75],['#9CC3A6',-0.1,1.8],['#E8A0A0',0.25,1.7],['#E8C547',0.45,1.45],['#9CC3A6',-0.35,1.4]].forEach(([c,a,y])=>box(g,0.14,0.14,0.005, a,y,0.025,c)); },
@@ -738,7 +800,7 @@ const B = {
   shipdesk(x,z,rot){ const g = grp(x,z,rot); box(g,0.9,0.04,0.5, 0,0.85,0,'#D8C7A6'); [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(([a,b])=>box(g,0.04,0.85,0.04, a*0.4,0,b*0.2,DARK)); box(g,0.2,0.15,0.22, -0.25,0.89,-0.05,'#1d1f1e'); box(g,0.3,0.04,0.3, 0.2,0.89,0,'#B9BDB9',{m:.4}); cyl(g,0.05,0.05,0.05, -0.05,0.89,0.15,'#C9A46E'); },
   crates(x,z){ ['#E8B923','#2B4C9B','#C8102E'].forEach((c,i)=>box(model,0.38,0.3,0.5, x+(i-1)*0.42,0,z+0.05,c,{r:.7})); },
   tape(x,z){ [0,PI/2].forEach(a=>{ const m = box(model,0.34,0.003,0.04,x,0.005,z,'#E5B53A',{noShadow:true}); m.rotation.y = a; }); },
-  ruler(x,z,rot){ const g = grp(x,z,rot); box(g,0.14,1.54,0.01, 0,0.12,0,'#1F2A26'); const m = new THREE.Mesh(new THREE.PlaneGeometry(0.11,1.5), new THREE.MeshBasicMaterial({map: rulerTexture()})); m.position.set(0,0.89,0.007); g.add(m); },
+  ruler(x,z,rot){ const g = grp(x,z,rot); box(g,0.14,1.54,0.01, 0,0.12,0,'#1F2A26'); const m = new THREE.Mesh(new THREE.PlaneGeometry(0.11,1.5), new THREE.MeshBasicMaterial({map: rulerTexture(), transparent:GHOST, opacity:GHOST?0.13:1})); m.position.set(0,0.89,0.007); g.add(m); },
   prepcart(x,z){ const g = grp(x,z,0); [0.3,0.8].forEach(y=>box(g,0.5,0.02,0.4, 0,y,0,'#8E9190')); [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(([a,b])=>{ box(g,0.02,0.8,0.02, a*0.24,0.04,b*0.19,'#6E7270'); cyl(g,0.03,0.03,0.04, a*0.22,0,b*0.17,'#222',{},8); }); cyl(g,0.04,0.05,0.22, -0.15,0.82,0,WHITE); box(g,0.18,0.05,0.07, 0.05,0.82,-0.08,OAK); ['#C9A46E','#2B3448','#B3261E','#E8C547'].forEach((c,i)=>box(g,0.05,0.005,0.05, 0.1+(i%2)*0.06,0.82,0.06+Math.floor(i/2)*0.06,c)); box(g,0.25,0.12,0.2, 0,0.32,0,KRAFT); },
   organizer(x,z,rot){ const g = grp(x,z,rot); box(g,0.6,1.1,0.4, 0,0,0,'#C9CBCB',{m:.2}); const cols = ['#5A3A22','#2A1E16','#8A5A35','#C9A46E','#1F1F1F','#7A4430']; for (let r=0;r<8;r++) for (let c=0;c<4;c++) box(g,0.12,0.1,0.01, -0.21+c*0.14,0.08+r*0.125,0.205, cols[(r+c)%cols.length],{noShadow:true}); },
   sewing(x,z,rot){
@@ -839,7 +901,20 @@ function build(){
   (v.accents||[]).forEach(([x0,z0,x1,z1,side])=>{ const a = wallSeg(x0,z0,x1,z1,2.6,0.02,GREEN,side); a.userData.accent = true; });
 
   // muebles
-  v.items.forEach(it=>{ const fn = B[it[0]]; if (fn) fn.apply(null, it.slice(1)); });
+  let ownBurros = 0;
+  v.items.forEach(it=>{
+    const n = it[0], fn = B[n]; if (!fn) return;
+    if (haveOn){
+      // el set del estudio se sustituye por tu equipo real (v.have); el resto que no tienes sale transparente
+      if (n==='backdrop' || n==='softbox' || (n==='manq' && !it[5]) || (n==='burro' && it[5]==='coat' && it[6]===1) || (n==='tripod' && it[3]<1.5)) return;
+      let own = HAVE_KEEP.has(n);
+      if (n==='burro' && it[5]==='bag' && ownBurros < 2){ own = true; ownBurros++; }
+      GHOST = !own;
+    }
+    fn.apply(null, it.slice(1)); GHOST = false;
+  });
+  if (haveOn) (v.have||[]).forEach(it=>{ const fn = B[it[0]]; if (fn) fn.apply(null, it.slice(1)); });
+  document.getElementById('haveNote').style.display = haveOn ? 'block' : 'none';
 
   // cotas
   addLabel('dim', fmt(W)+' m', W/2, 0.02, -1.0);
@@ -857,7 +932,7 @@ function build(){
     flowGroup.add(s);
   }
   r.forEach(p=>{ if (p[2]) addLabel('step', String(p[2]), p[0], 0.1, p[1], null, STEPS[p[2]-1]); });
-  (v.tags||[]).forEach(([x,y,z,t])=>addLabel('tag', t, x, y, z));
+  ((haveOn ? v.haveTags : v.tags)||[]).forEach(([x,y,z,t])=>addLabel('tag', t, x, y, z));
   flowGroup.visible = flowOn;
 
   applyLowWalls(); applySelection();
@@ -1105,6 +1180,7 @@ toggle('tZones', on=>{ zonesOn = on; applySelection(); });
 toggle('tFlow', on=>{ flowOn = on; if (flowGroup) flowGroup.visible = on; dirty = true; });
 toggle('tLow', on=>{ lowWalls = on; applyLowWalls(); });
 toggle('tTags', on=>{ tagsOn = on; dirty = true; });
+toggle('tHave', on=>{ haveOn = on; try { localStorage.setItem('lauxen-local-have', on?'1':'0'); } catch(e){} build(); });
 
 /* ---------- Equipamiento ---------- */
 const EQ = [
@@ -1133,6 +1209,7 @@ countEq();
 /* arranque */
 document.querySelectorAll('[data-v]').forEach(x=>x.setAttribute('aria-pressed', +x.dataset.v===cur ? 'true':'false'));
 document.getElementById('tTags').setAttribute('aria-pressed', tagsOn ? 'true':'false');
+document.getElementById('tHave').setAttribute('aria-pressed', haveOn ? 'true':'false');
 if (matchMedia('(pointer:coarse)').matches) document.querySelector('.hint').textContent = 'Un dedo para girar · dos dedos para acercar y mover';
 readTokens();
 build();
